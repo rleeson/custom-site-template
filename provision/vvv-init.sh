@@ -40,16 +40,17 @@ touch ${VVV_PATH_TO_SITE}/log/access.log
 
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
-  WPENGINE_REPO = `get_wpengine_value 'repo' ''`
+  WPENGINE_REPO=`get_wpengine_value 'repo' ''`
+  mkdir ${VVV_PATH_TO_SITE}/public_html
   cd ${VVV_PATH_TO_SITE}/public_html
   
   if [[ "${WPENGINE_REPO}" ]] && [[ "public_html/" == "$(git rev-parse --show-prefix)" ]]; then
     echo -e "Cloning WPEngine compatible site repository from ${WPENGINE_REPO}"
-    git clone ${WPENGINE_REPO} --quiet
+    noroot git clone ${WPENGINE_REPO} --quiet
   else
     if [ -n "$(git diff-index --quiet HEAD --)" ]; then
       echo -e "Updating clean branch $(git rev-parse --abbrev-ref HEAD) from ${WPENGINE_REPO}"      
-      git pull --quiet
+      noroot git pull --quiet
     else
       echo -e "Branch $(git rev-parse --abbrev-ref HEAD) has working copy changes, no update"
     fi
