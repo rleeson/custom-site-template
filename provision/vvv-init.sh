@@ -51,7 +51,7 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
     echo -e "\nUsing WPEngine style repository from ${WPENGINE_REPO}...\n"
     if [ "public_html/" == "$(git rev-parse --show-prefix)" ]; then
       echo -e "\nCloning WPEngine compatible site repository...\n"
-      noroot git clone ${WPENGINE_REPO}
+      noroot git clone ${WPENGINE_REPO} .
     else
       if [ -n "$(git diff-index --quiet HEAD --)" ]; then
         echo -e "Updating clean branch $(git rev-parse --abbrev-ref HEAD) from ${WPENGINE_REPO}..."      
