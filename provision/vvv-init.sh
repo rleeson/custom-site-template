@@ -50,14 +50,16 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   if [ ! -z "${WPENGINE_REPO}" ]; then
     echo -e "\nUsing WPEngine style repository from ${WPENGINE_REPO}...\n"
     if [ "public_html/" == "$(git rev-parse --show-prefix)" ]; then
+      echo "No existing site repository, clearing the site directory prior to cloning..."
+      noroot rm -rf *
       echo -e "\nCloning WPEngine compatible site repository...\n"
       noroot git clone ${WPENGINE_REPO} .
     else
       if [ -n "$(git diff-index --quiet HEAD --)" ]; then
-        echo -e "Updating clean branch $(git rev-parse --abbrev-ref HEAD) from ${WPENGINE_REPO}..."      
+        echo -e "\nUpdating clean branch $(git rev-parse --abbrev-ref HEAD) from ${WPENGINE_REPO}...\n"
         noroot git pull
       else
-        echo -e "Branch $(git rev-parse --abbrev-ref HEAD) has working copy changes, no update."
+        echo -e "\nBranch $(git rev-parse --abbrev-ref HEAD) has working copy changes, no update.\n"
       fi
     fi
   fi

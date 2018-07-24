@@ -1,129 +1,54 @@
 # VVV Custom site template
-For when you just need a simple dev site
+This extends the standard custom site definition outlined at https://github.com/Varying-Vagrant-Vagrants/custom-site-template/, with the intent of supporting sites hosted on WPEngine and WordPress VIP Classic.  If you want to manage the site repositories on your own and don't want automation, this library is not for you, use the base custom site templates.
 
 ## Overview
-This template will allow you to create a WordPress dev environment using only `vvv-custom.yml`.
+This template creates one or more WordPress development environments using YAML.  Place all site definitions in `vvv-custom.yml`, located in the root directory of VVV.  You can add new/update sites on an existing VVV instance using vagrant up --provision (if the VM is off) or vagrant provision (if already running). See the original repository for explinations of the base features.
 
-The supported environments are:
-- A single site
-- A subdomain multisite
-- A subdirectory multisite
+## WPEngine Specific
+On provision, if the site (public_html) directory does not contain a Git repository, the directory is cleared then cloned from the specified Git repository.  If a repository exists there and the working copy is clean, it attempts to pull the latest commits from the repository, otherwise, it does nothing.  The goal here is to help automate repository updates when working infrequently on a project, and to protect and uncommited in process work.  If you have something in the directory with no repository though, beward, it will be removed.
 
-# Configuration
+# Relevant Configuration
 
-### The minimum required configuration:
+### Local Environment [custom.wp_type]
+- single (Default): single site
+- subdomain: subdomain multisite
+- subdirectory: subdirectory multisite
 
-```
-my-site:
-  repo: https://github.com/Varying-Vagrant-Vagrants/custom-site-template
-  hosts:
-    - my-site.test
-```
-| Setting    | Value       |
-|------------|-------------|
-| Domain     | my-site.test |
-| Site Title | my-site.test |
-| DB Name    | my-site     |
-| Site Type  | Single      |
-| WP Version | Latest      |
+### Deployment/Target Environment [custom.wp_host_type]
+- self (Default): independently/self hosted, though really, just use the base repository for this option
+- vip (NYI): VIP classic site structure
+- wpengine: WPEngine installs, Git repository at the root of the site; this assumes WP Core is not versioned
 
-### Minimal configuration with custom domain and WordPress Nightly:
+### WPEngine Site Repository [custom.wpengine.repo]
+HTTP(S) or SSH path to a repository, expected to be the root of a site.  See notes below for SSH keys and fingerprints.
 
 ```
 my-site:
-  repo: https://github.com/Varying-Vagrant-Vagrants/custom-site-template
+  repo: https://github.com/rleeson/custom-site-template
   hosts:
-    - foo.test
+    - mysite.test
   custom:
-    wp_version: nightly
-```
-| Setting    | Value       |
-|------------|-------------|
-| Domain     | foo.test     |
-| Site Title | foo.test     |
-| DB Name    | my-site     |
-| Site Type  | Single      |
-| WP Version | Nightly     |
-
-### WordPress Multisite with Subdomains:
-
-```
-my-site:
-  repo: https://github.com/Varying-Vagrant-Vagrants/custom-site-template
-  hosts:
-    - multisite.test
-    - site1.multisite.test
-    - site2.multisite.test
-  custom:
-    wp_type: subdomain
-```
-| Setting    | Value               |
-|------------|---------------------|
-| Domain     | multisite.test      |
-| Site Title | multisite.test      |
-| DB Name    | my-site             |
-| Site Type  | Subdomain Multisite |
-
-### WordPress Multisite with Subdirectory:
-
-```
-my-site:
-  repo: https://github.com/Varying-Vagrant-Vagrants/custom-site-template
-  hosts:
-    - multisite.test
-  custom:
-    wp_type: subdirectory
-```
-| Setting    | Value                  |
-|------------|------------------------|
-| Domain     | multisite.test         |
-| Site Title | multisite.test         |
-| DB Name    | my-site                |
-| Site Type  | Subdirectory Multisite |
-
-## Configuration Options
-
-```
-hosts:
-    - foo.test
-    - bar.test
-    - baz.test
-```
-Defines the domains and hosts for VVV to listen on. 
-The first domain in this list is your sites primary domain.
-
-```
-custom:
-    site_title: My Awesome Dev Site
-```
-Defines the site title to be set upon installing WordPress.
-
-```
-custom:
-    wp_version: 4.6.4
-```
-Defines the WordPress version you wish to install.
-Valid values are:
-- nightly
-- latest
-- a version number
-
-Older versions of WordPress will not run on PHP7, see this page on [how to change PHP version per site](https://varyingvagrantvagrants.org/docs/en-US/adding-a-new-site/changing-php-version/).
-
-```
-custom:
     wp_type: single
+    wp_host_type: wpengine
+    wpengine:
+      repo: https://github.com/someone/mysitecode.git
 ```
-Defines the type of install you are creating.
-Valid values are:
-- single
-- subdomain
-- subdirectory
 
-```
-custom:
-    db_name: super_secet_db_name
-```
-Defines the DB name for the installation.
+| Setting    | Value                                       |
+|------------|---------------------------------------------|
+| Domain     | mysite.test                                 |
+| Site Title | mysite.test                                 |
+| DB Name    | mysite                                      |
+| Site Type  | Single Site                                 |
+| Code Repo  | https://github.com/someone/mysitecode.git   |
 
+## SSH Configuration Notes
+When connecting with SSH repositories, you need to:
+- Load your SSH key either on the VM (less secure), or forward your hosts SSH agent (slightly more secure)
+- Accept the SSH host key fingerprint of the server hosting the site repository  
 
+Provided the Vagrant option config.ssh.forward_agent is set true, Vagrant should use any OpenSSH keys loaded on your host machine when connecting to repositories. On Windows hosts, you can use Paegent to load your key, though you may need to make a few modifications:
+- Install Paegent, this comes with PuTTY and many other packages
+- Set the Windows system environment variable VAGRANT_PREFER_SYSTEM_BIN to `true`. You can edit this from Start -> Edit the system environment variables -> Environment Variables button -> System Variables -> New...  You must restart whatever IDE/editor/shell you are running for this to take effect.  Reboot if you are unsure.
+
+To accept the SSH host fingerprint, the most secure way is to provision VVV once, then use `vagrant ssh` to login and use ssh to connect to the host and add the key: `ssh <user>@<server_address> -p <port_number>`
