@@ -41,7 +41,9 @@ touch ${VVV_PATH_TO_SITE}/log/access.log
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   WPENGINE_REPO=`get_wpengine_value 'repo' ''`
-  mkdir ${VVV_PATH_TO_SITE}/public_html
+  if [[ ! -d ${VVV_PATH_TO_SITE}/public_html ]]; then 
+    mkdir ${VVV_PATH_TO_SITE}/public_html
+  fi
   cd ${VVV_PATH_TO_SITE}/public_html
   
   if [[ "${WPENGINE_REPO}" ]] && [[ "public_html/" == "$(git rev-parse --show-prefix)" ]]; then
