@@ -50,5 +50,6 @@ When connecting with SSH repositories, you need to:
 Provided the Vagrant option config.ssh.forward_agent is set true, Vagrant should use any OpenSSH keys loaded on your host machine when connecting to repositories. On Windows hosts, you can use Paegent to load your key, though you may need to make a few modifications:
 - Install Paegent, this comes with PuTTY and many other packages
 - Set the Windows system environment variable VAGRANT_PREFER_SYSTEM_BIN to `true`. You can edit this from Start -> Edit the system environment variables -> Environment Variables button -> System Variables -> New...  You must restart whatever IDE/editor/shell you are running for this to take effect.  Reboot if you are unsure.
+- Make sure your SSH tools and Paegent folder are in your Windows system path, same environment variable place, just the path property.
 
 To accept the SSH host fingerprint, the most secure way is to provision VVV once, then use `vagrant ssh` to login and use ssh to connect to the host and add the key: `ssh <user>@<server_address> -p <port_number>`
