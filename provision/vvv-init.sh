@@ -1,12 +1,44 @@
 #!/usr/bin/env bash
 # Provision WordPress Stable
 
+# Get the set of plugins to active (use for custom plugins)
+get_plugins_to_activate() {
+  local value=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.wpengine.plugins.install 2> /dev/null`
+  return value
+}
+
+# Get the set of plugins to install/update
+get_plugins_to_install() {
+  local value=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.wpengine.plugins.install 2> /dev/null`
+  return value
+}
+
 # Get the value of a key for WPEngine setups
 # @param ${1} - Key to find
 # @param ${2} - Optional default value
 get_wpengine_value() {
   local value=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.wpengine.${1} 2> /dev/null`
   echo ${value:-$2}
+}
+
+# Determines if the current directory is the root of a git repository
+is_directory_repo_root() {
+  # Root directory has no prefix
+  if [ -z "$(git rev-parse --show-prefix)" ]; then
+    return 1
+  fi
+
+  return 0
+}
+
+# Determines if the current git repositories working copy is clean (no changes)
+is_git_working_copy_clean() {
+  # Root directory has no prefix
+  if [ -n "$(git diff-index --quiet HEAD --)" ]; then
+    return 1
+  fi
+
+  return 0
 }
 
 # Standard configuration variables
@@ -49,19 +81,24 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   
   if [ ! -z "${WPENGINE_REPO}" ]; then
     echo -e "\nUsing WPEngine style repository from ${WPENGINE_REPO}...\n"
-    if [ "public_html/" == "$(git rev-parse --show-prefix)" ]; then
+    if [ ! is_directory_repo_root() ]; then
       echo "No existing site repository, clearing the site directory prior to cloning..."
       noroot rm -rf *
       echo -e "\nCloning WPEngine compatible site repository...\n"
       noroot git clone ${WPENGINE_REPO} .
     else
-      if [ -n "$(git diff-index --quiet HEAD --)" ]; then
+      if [ is_git_working_copy_clean() ]; then
         echo -e "\nUpdating clean branch $(git rev-parse --abbrev-ref HEAD) from ${WPENGINE_REPO}...\n"
         noroot git pull
       else
         echo -e "\nBranch $(git rev-parse --abbrev-ref HEAD) has working copy changes, no update.\n"
       fi
     fi
+  fi
+
+  if [ ! is_directory_repo_root() ]; then
+    echo "WPEngine site root has no Git repository, stopping provisioning, please check site settings"
+    exit 0
   fi
 fi
 
@@ -100,6 +137,13 @@ else
   echo "Updating WordPress Stable..."
 
   noroot wp core update --version="${WP_VERSION}"
+fi
+
+PLUGINS_TO_INSTALL=get_plugins_to_install()
+if [ PLUGINS_TO_INSTALL ]; then
+  for plugin in ${PLUGINS_TO_INSTALL}; do
+    noroot wp plugin install ${plugin} --activate
+  done
 fi
 
 # Add/replace the Nginx site configuration for all site domains
