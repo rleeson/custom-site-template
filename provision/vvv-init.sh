@@ -1,16 +1,33 @@
 #!/usr/bin/env bash
 # Provision WordPress Stable
+# noroot() runs commands in the context of the vagrant user to maintain user permissions
 
 # Get the set of plugins to active (use for custom plugins)
-get_plugins_to_activate() {
-  local value=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.wpengine.plugins.install 2> /dev/null`
-  return value
+activate_plugins() {
+  local plugins=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.wpengine.plugins.activate 2> /dev/null`
+  for plugin in ${plugins}; do
+    if [ -z "$(noroot wp plugin is-installed ${plugin})" ]; then
+      echo -e "\nPlugin ${plugin} not found, could not activate...\n"
+    else
+      echo -e "\nActivating plugin ${plugin}...\n"
+      noroot wp plugin install ${plugin} --activate
+    fi
+  done
+  return 1
 }
 
-# Get the set of plugins to install/update
-get_plugins_to_install() {
-  local value=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.wpengine.plugins.install 2> /dev/null`
-  return value
+# Install all requested plugins for the site
+install_plugins() {
+  local plugins=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.wpengine.plugins.install 2> /dev/null`
+  for plugin in ${plugins}; do
+    if [ -z "$(noroot wp plugin is-installed ${plugin})" ]; then
+      echo -e "\nInstalling and activating new plugin ${plugin}...\n"
+      noroot wp plugin install ${plugin} --activate
+    else
+      echo -e "\nPlugin ${plugin} is already installed.\n"
+    fi
+  done
+  return 1
 }
 
 # Get the value of a key for WPEngine setups
@@ -97,7 +114,7 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   fi
 
   if [ ! $(is_directory_repo_root) ]; then
-    echo "WPEngine site root has no Git repository, stopping provisioning, please check site settings"
+    echo "WPEngine site root has no Git repository, provisioning cannot continue, please check site settings"
     exit 0
   fi
 fi
@@ -139,12 +156,10 @@ else
   noroot wp core update --version="${WP_VERSION}"
 fi
 
-PLUGINS_TO_INSTALL=$(get_plugins_to_install)
-if [ PLUGINS_TO_INSTALL ]; then
-  for plugin in ${PLUGINS_TO_INSTALL}; do
-    noroot wp plugin install ${plugin} --activate
-  done
-fi
+# Install and update all requested plugins, then activate any custom plugins 
+install_plugins
+noroot wp plugin update --all
+activate_plugins
 
 # Add/replace the Nginx site configuration for all site domains
 cp -f "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf.tmpl" "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf"
