@@ -4,9 +4,9 @@
 
 # Get the set of plugins to active (use for custom plugins)
 activate_plugins() {
-  local plugins=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.wpengine.plugins.activate 2> /dev/null`
+  local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.wpengine.plugins.activate 2> /dev/null`
   for plugin in ${plugins}; do
-    if [ -z "$(noroot wp plugin is-installed ${plugin})" ]; then
+    if [ ! $(noroot wp plugin is-installed ${plugin}) ]; then
       echo -e "\nPlugin ${plugin} not found, could not activate...\n"
     else
       echo -e "\nActivating plugin ${plugin}...\n"
@@ -16,15 +16,34 @@ activate_plugins() {
   return 1
 }
 
-# Install all requested plugins for the site
+# Install all requested plugins
 install_plugins() {
-  local plugins=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.wpengine.plugins.install 2> /dev/null`
+  local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.wpengine.plugins.install 2> /dev/null`
   for plugin in ${plugins}; do
-    if [ -z "$(noroot wp plugin is-installed ${plugin})" ]; then
+    if [ ! $(noroot wp plugin is-installed ${plugin}) ]; then
       echo -e "\nInstalling and activating new plugin ${plugin}...\n"
       noroot wp plugin install ${plugin} --activate
     else
       echo -e "\nPlugin ${plugin} is already installed.\n"
+    fi
+  done
+  return 1
+}
+
+# Updates installed plugins, if autoupdate is enabled (on)
+update_plugins() {
+  local autoupdate=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.wpengine.plugins.autoupdate 2> /dev/null`
+  if [ "on" != "${autoupdate}" ]; then
+    return 0;
+  fi
+
+  local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.wpengine.plugins.install 2> /dev/null`
+  for plugin in ${plugins}; do
+    if [ ! $(noroot wp plugin is-installed ${plugin}) ]; then
+      echo -e "\nPlugin ${plugin} is not installed, cannot update...\n"
+    else
+      echo -e "\nPlugin ${plugin} is already installed.\n"
+      noroot wp plugin update ${plugin}
     fi
   done
   return 1
@@ -101,6 +120,7 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
     if [ ! $(is_directory_repo_root) ]; then
       echo "No existing site repository, clearing the site directory prior to cloning..."
       noroot rm -rf *
+      noroot rm -rf .*
       echo -e "\nCloning WPEngine compatible site repository...\n"
       noroot git clone ${WPENGINE_REPO} .
     else
@@ -158,7 +178,7 @@ fi
 
 # Install and update all requested plugins, then activate any custom plugins 
 install_plugins
-noroot wp plugin update --all
+update_plugins
 activate_plugins
 
 # Add/replace the Nginx site configuration for all site domains
