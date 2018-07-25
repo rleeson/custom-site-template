@@ -117,14 +117,14 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   
   if [ ! -z "${WPENGINE_REPO}" ]; then
     echo -e "\nUsing WPEngine style repository from ${WPENGINE_REPO}...\n"
-    if [ ! $(is_directory_repo_root) ]; then
+    if [ 0 == $(is_directory_repo_root) ]; then
       echo "No existing site repository, clearing the site directory prior to cloning..."
       noroot rm -rf *
       noroot rm -rf .*
       echo -e "\nCloning WPEngine compatible site repository...\n"
       noroot git clone ${WPENGINE_REPO} .
     else
-      if [ $(is_git_working_copy_clean) ]; then
+      if [ 1 == $(is_git_working_copy_clean) ]; then
         echo -e "\nUpdating clean branch $(git rev-parse --abbrev-ref HEAD) from ${WPENGINE_REPO}...\n"
         noroot git pull
       else
@@ -133,7 +133,7 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
     fi
   fi
 
-  if [ ! $(is_directory_repo_root) ]; then
+  if [ 0 == $(is_directory_repo_root) ]; then
     echo "WPEngine site root has no Git repository, provisioning cannot continue, please check site settings"
     exit 0
   fi
