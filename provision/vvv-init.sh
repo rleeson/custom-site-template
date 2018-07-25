@@ -6,28 +6,28 @@
 activate_plugins() {
   local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.activate 2> /dev/null`
   for plugin in ${plugins}; do
-    if [ ! $(noroot wp plugin is-installed ${plugin}) ]; then
+    if [ "1" == "$(noroot wp plugin is-installed ${plugin})" ]; then
       echo -e "\nPlugin ${plugin} not found, could not activate...\n"
     else
       echo -e "\nActivating plugin ${plugin}...\n"
       noroot wp plugin activate ${plugin}
     fi
   done
-  return 1
+  return 0
 }
 
 # Install all requested plugins
 install_plugins() {
   local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.install 2> /dev/null`
   for plugin in ${plugins}; do
-    if [ ! $(noroot wp plugin is-installed ${plugin}) ]; then
+    if [ "1" == "$(noroot wp plugin is-installed ${plugin})" ]; then
       echo -e "\nInstalling and activating new plugin ${plugin}...\n"
       noroot wp plugin install ${plugin} --activate
     else
       echo -e "\nPlugin ${plugin} is already installed.\n"
     fi
   done
-  return 1
+  return 0
 }
 
 # Updates installed plugins, if autoupdate is enabled (on)
@@ -39,14 +39,14 @@ update_plugins() {
 
   local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.install 2> /dev/null`
   for plugin in ${plugins}; do
-    if [ ! $(noroot wp plugin is-installed ${plugin}) ]; then
+    if [ "1" == "$(noroot wp plugin is-installed ${plugin})" ]; then
       echo -e "\nPlugin ${plugin} is not installed, cannot update...\n"
     else
       echo -e "\nPlugin ${plugin} is already installed.\n"
       noroot wp plugin update ${plugin}
     fi
   done
-  return 1
+  return 0
 }
 
 # Get the value of a key for WPEngine setups
@@ -58,23 +58,25 @@ get_wpengine_value() {
 }
 
 # Determines if the current directory is the root of a git repository
+# @returns 0 if the repo root, 1 otherwise
 is_directory_repo_root() {
   # Root directory has no prefix
   if [ -z "$(git rev-parse --show-prefix)" ]; then
-    return 1
+    return 0
   fi
 
-  return 0
+  return 1
 }
 
 # Determines if the current git repositories working copy is clean (no changes)
+# @returns 0 if clean, 1 otherwise
 is_git_working_copy_clean() {
   # Root directory has no prefix
   if [ -n "$(git diff-index --quiet HEAD --)" ]; then
-    return 1
+    return 0
   fi
 
-  return 0
+  return 1
 }
 
 # Standard configuration variables
@@ -117,14 +119,14 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   
   if [ ! -z "${WPENGINE_REPO}" ]; then
     echo -e "\nUsing WPEngine style repository from ${WPENGINE_REPO}...\n"
-    if [ "0" == "$(is_directory_repo_root)" ]; then
+    if [ "1" == "$(is_directory_repo_root)" ]; then
       echo "No existing site repository, clearing the site directory prior to cloning..."
       noroot rm -rf *
       noroot rm -rf .*
       echo -e "\nCloning WPEngine compatible site repository...\n"
       noroot git clone ${WPENGINE_REPO} .
     else
-      if [ "1" == "$(is_git_working_copy_clean)" ]; then
+      if [ "0" == "$(is_git_working_copy_clean)" ]; then
         echo -e "\nUpdating clean branch $(git rev-parse --abbrev-ref HEAD) from ${WPENGINE_REPO}...\n"
         noroot git pull
       else
@@ -133,7 +135,7 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
     fi
   fi
 
-  if [ "0" == "$(is_directory_repo_root)" ]; then
+  if [ "1" == "$(is_directory_repo_root)" ]; then
     echo "WPEngine site root has no Git repository, provisioning cannot continue, please check site settings"
     exit 0
   fi
