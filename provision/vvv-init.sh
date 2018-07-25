@@ -10,7 +10,7 @@ activate_plugins() {
       echo -e "\nPlugin ${plugin} not found, could not activate...\n"
     else
       echo -e "\nActivating plugin ${plugin}...\n"
-      noroot wp plugin activate ${plugin}
+      noroot wp plugin activate ${plugin} --quiet
     fi
   done
   return 0
@@ -22,7 +22,7 @@ install_plugins() {
   for plugin in ${plugins}; do
     if [ "1" == "$(noroot wp plugin is-installed ${plugin})" ]; then
       echo -e "\nInstalling and activating new plugin ${plugin}...\n"
-      noroot wp plugin install ${plugin} --activate
+      noroot wp plugin install ${plugin} --activate --quiet
     else
       echo -e "\nPlugin ${plugin} is already installed.\n"
     fi
@@ -34,6 +34,7 @@ install_plugins() {
 update_plugins() {
   local autoupdate=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.plugins.autoupdate 2> /dev/null`
   if [ "on" != "${autoupdate}" ]; then
+    echo "Plugin auto-update disabled, skipping update"
     return 0;
   fi
 
@@ -43,7 +44,7 @@ update_plugins() {
       echo -e "\nPlugin ${plugin} is not installed, cannot update...\n"
     else
       echo -e "\nPlugin ${plugin} is already installed.\n"
-      noroot wp plugin update ${plugin}
+      noroot wp plugin update ${plugin} --quiet
     fi
   done
   return 0
@@ -185,6 +186,8 @@ echo "Updating site plugins..."
 update_plugins
 echo "Activating custom site plugins..."
 activate_plugins
+echo "Checking plugin statuses..."
+noroot wp plugin status
 
 # Add/replace the Nginx site configuration for all site domains
 cp -f "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf.tmpl" "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf"
