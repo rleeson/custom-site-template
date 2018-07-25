@@ -4,7 +4,7 @@
 
 # Get the set of plugins to active (use for custom plugins)
 activate_plugins() {
-  local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.wpengine.plugins.activate 2> /dev/null`
+  local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.activate 2> /dev/null`
   for plugin in ${plugins}; do
     if [ ! $(noroot wp plugin is-installed ${plugin}) ]; then
       echo -e "\nPlugin ${plugin} not found, could not activate...\n"
@@ -18,7 +18,7 @@ activate_plugins() {
 
 # Install all requested plugins
 install_plugins() {
-  local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.wpengine.plugins.install 2> /dev/null`
+  local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.install 2> /dev/null`
   for plugin in ${plugins}; do
     if [ ! $(noroot wp plugin is-installed ${plugin}) ]; then
       echo -e "\nInstalling and activating new plugin ${plugin}...\n"
@@ -32,12 +32,12 @@ install_plugins() {
 
 # Updates installed plugins, if autoupdate is enabled (on)
 update_plugins() {
-  local autoupdate=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.wpengine.plugins.autoupdate 2> /dev/null`
+  local autoupdate=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.plugins.autoupdate 2> /dev/null`
   if [ "on" != "${autoupdate}" ]; then
     return 0;
   fi
 
-  local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.wpengine.plugins.install 2> /dev/null`
+  local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.install 2> /dev/null`
   for plugin in ${plugins}; do
     if [ ! $(noroot wp plugin is-installed ${plugin}) ]; then
       echo -e "\nPlugin ${plugin} is not installed, cannot update...\n"
@@ -117,14 +117,14 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   
   if [ ! -z "${WPENGINE_REPO}" ]; then
     echo -e "\nUsing WPEngine style repository from ${WPENGINE_REPO}...\n"
-    if [ 0 == $(is_directory_repo_root) ]; then
+    if [ "0" == "$(is_directory_repo_root)" ]; then
       echo "No existing site repository, clearing the site directory prior to cloning..."
       noroot rm -rf *
       noroot rm -rf .*
       echo -e "\nCloning WPEngine compatible site repository...\n"
       noroot git clone ${WPENGINE_REPO} .
     else
-      if [ 1 == $(is_git_working_copy_clean) ]; then
+      if [ "1" == "$(is_git_working_copy_clean)" ]; then
         echo -e "\nUpdating clean branch $(git rev-parse --abbrev-ref HEAD) from ${WPENGINE_REPO}...\n"
         noroot git pull
       else
@@ -133,7 +133,7 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
     fi
   fi
 
-  if [ 0 == $(is_directory_repo_root) ]; then
+  if [ "0" == "$(is_directory_repo_root)" ]; then
     echo "WPEngine site root has no Git repository, provisioning cannot continue, please check site settings"
     exit 0
   fi
@@ -177,8 +177,11 @@ else
 fi
 
 # Install and update all requested plugins, then activate any custom plugins 
+echo "Installing site plugins..."
 install_plugins
+echo "Updating site plugins..."
 update_plugins
+echo "Activating custom site plugins..."
 activate_plugins
 
 # Add/replace the Nginx site configuration for all site domains
