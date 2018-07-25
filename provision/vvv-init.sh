@@ -10,7 +10,7 @@ activate_plugins() {
       echo -e "\nPlugin ${plugin} not found, could not activate...\n"
     else
       echo -e "\nActivating plugin ${plugin}...\n"
-      noroot wp plugin install ${plugin} --activate
+      noroot wp plugin activate ${plugin}
     fi
   done
   return 1
