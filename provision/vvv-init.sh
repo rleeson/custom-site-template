@@ -13,7 +13,7 @@ activate_plugins() {
       noroot wp plugin activate ${plugin} --quiet
     fi
   done
-  return 0
+  echo 0
 }
 
 # Install all requested plugins
@@ -27,7 +27,7 @@ install_plugins() {
       echo -e "\nPlugin ${plugin} is already installed.\n"
     fi
   done
-  return 0
+  echo 0
 }
 
 # Updates installed plugins, if autoupdate is enabled (on)
@@ -35,7 +35,7 @@ update_plugins() {
   local autoupdate=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.plugins.autoupdate 2> /dev/null`
   if [ "on" != "${autoupdate}" ]; then
     echo "Plugin auto-update disabled, skipping update"
-    return 0;
+    return;
   fi
 
   local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.install 2> /dev/null`
@@ -63,10 +63,10 @@ get_wpengine_value() {
 is_directory_repo_root() {
   # Root directory has no prefix
   if [ -z "$(git rev-parse --show-prefix)" ]; then
-    return 0
+    echo 0
+  else 
+    echo 1
   fi
-
-  return 1
 }
 
 # Determines if the current git repositories working copy is clean (no changes)
@@ -74,10 +74,10 @@ is_directory_repo_root() {
 is_git_working_copy_clean() {
   # Root directory has no prefix
   if [ -n "$(git diff-index --quiet HEAD --)" ]; then
-    return 0
+    echo 0
+  else
+    echo 1
   fi
-
-  return 1
 }
 
 # Standard configuration variables
