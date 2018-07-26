@@ -42,6 +42,35 @@ my-site:
 | Site Type  | Single Site                                 |
 | Code Repo  | https://github.com/someone/mysitecode.git   |
 
+## Plugin Configuration
+Plugins can optionally be installed, activated, and/or updated using custom plugin configuration attributes.
+
+### Activate Plugins [custom.plugins.activate]
+This setting is intended to activate plugins which are not publically available, perhaps a custom plugin in your site repository. Accepts a YAML list of plugins slugs/names. The list of plugins is activated if they are installed.
+
+### Install Plugins [custom.plugins.install]
+Accepts a YAML list of plugins slugs/names. The list of plugins is installed and activated if they are not already installed.
+
+### Auto-Update Plugins [custom.plugins.autoupdate]
+Set 'on' to auto-update installed plugins, otherwise updates are disabled. It updates the list of installed plugins [custom.plugins.install] while skipping activated [custom.plugins.activate] plugins, with the expectation they are managed via version control, Composer, etc.  If this is not the way you manage your plugins, do not set this option to 'on'.
+
+```
+my-site:
+  repo: https://github.com/rleeson/custom-site-template
+  hosts:
+    - mysite.test
+  custom:
+    wp_type: single
+    wp_host_type: wpengine
+    plugins:
+      autoupdate: on
+      activate:
+        - mysite-models
+      install:
+        - jetpack
+        - wordpress-seo
+```
+
 ## SSH Configuration Notes
 When connecting with SSH repositories, you need to:
 - Load your SSH key either on the VM (less secure), or forward your hosts SSH agent (slightly more secure)
