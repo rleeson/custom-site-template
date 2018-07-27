@@ -61,7 +61,7 @@ get_wpengine_value() {
 git_repository_pull() {
   cd "$1"
   if [ ! -z "$2" ]; then
-    echo -e "\nChecking Git repository at $2...\n"
+    echo -e "\nChecking Git repository in $1 from $2...\n"
     if [ "1" == "$(is_directory_repo_root)" ]; then
       echo "No existing site repository, clearing the directory prior to cloning..."
       noroot rm -rf * 2> /dev/null
@@ -133,9 +133,9 @@ touch ${VVV_PATH_TO_SITE}/log/access.log
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   WPENGINE_REPO=`get_wpengine_value 'repo' ''`
-  SITE_PATH="${VVV_PATH_TO_SITE}/public_html"
-  if [[ ! -d ${SITE_PATH}l ]]; then 
-    echo "Making site directory..."
+  SITE_PATH=${VVV_PATH_TO_SITE}/public_html
+  if [[ ! -d ${SITE_PATH} ]]; then 
+    echo "Making site directory ${SITE_PATH}..."
     mkdir ${SITE_PATH}
   fi
 
