@@ -5,7 +5,7 @@
 # Get the set of plugins to active (use for custom plugins)
 activate_plugins() {
   local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.activate 2> /dev/null`
-  for aplugin in ${plugins}; do
+  for plugin in ${plugins}; do
     if [ ! $(noroot wp plugin is-installed ${plugin}) ]; then
       echo -e "\nPlugin ${plugin} not found, could not activate...\n"
     else
