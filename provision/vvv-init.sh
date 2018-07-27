@@ -6,7 +6,7 @@
 activate_plugins() {
   local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.activate 2> /dev/null`
   for plugin in ${plugins}; do
-    if [ ! $(noroot wp plugin is-installed ${plugin}) ]; then
+    if ! noroot wp plugin is-installed ${plugin}; then
       echo -e "\nPlugin ${plugin} not found, could not activate...\n"
     else
       echo -e "\nActivating plugin ${plugin}...\n"
@@ -19,7 +19,7 @@ activate_plugins() {
 install_plugins() {
   local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.install 2> /dev/null`
   for plugin in ${plugins}; do
-    if [ ! $(noroot wp plugin is-installed ${plugin}) ]; then
+    if ! noroot wp plugin is-installed ${plugin}; then
       echo -e "\nInstalling and activating new plugin ${plugin}...\n"
       noroot wp plugin install ${plugin} --activate --quiet
     else
@@ -38,7 +38,7 @@ update_plugins() {
 
   local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.install 2> /dev/null`
   for plugin in ${plugins}; do
-    if [ ! $(noroot wp plugin is-installed ${plugin}) ]; then
+    if ! noroot wp plugin is-installed ${plugin}; then
       echo -e "\nPlugin ${plugin} is not installed, cannot update...\n"
     else
       echo -e "\nPlugin ${plugin} is already installed.\n"
