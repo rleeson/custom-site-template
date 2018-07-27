@@ -142,7 +142,7 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   # Pull the latest copy of the site repository (if it's in a clean state)
   git_repository_pull ${SITE_PATH} ${WPENGINE_REPO}
 
-  if [[ is_directory_repo_root ]]; then
+  if [[ ! is_directory_repo_root ]]; then
     echo "WPEngine site root has no Git repository, provisioning cannot continue, please check site settings"
     exit 0
   fi
