@@ -59,7 +59,7 @@ get_wpengine_value() {
 # @param $1 Target directory, must exist
 # @param $2 Git repository location
 git_repository_pull() {
-  cd $1
+  cd "$1"
   if [ ! -z "$2" ]; then
     echo -e "\nChecking Git repository at $2...\n"
     if [ "1" == "$(is_directory_repo_root)" ]; then
@@ -133,7 +133,7 @@ touch ${VVV_PATH_TO_SITE}/log/access.log
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   WPENGINE_REPO=`get_wpengine_value 'repo' ''`
-  SITE_PATH=${VVV_PATH_TO_SITE}/public_html
+  SITE_PATH="${VVV_PATH_TO_SITE}/public_html"
   if [[ ! -d ${SITE_PATH}l ]]; then 
     echo "Making site directory..."
     mkdir ${SITE_PATH}
