@@ -13,7 +13,6 @@ activate_plugins() {
       noroot wp plugin activate ${plugin} --quiet
     fi
   done
-  echo 0
 }
 
 # Install all requested plugins
@@ -27,7 +26,6 @@ install_plugins() {
       echo -e "\nPlugin ${plugin} is already installed.\n"
     fi
   done
-  echo 0
 }
 
 # Updates installed plugins, if autoupdate is enabled (on)
@@ -47,7 +45,6 @@ update_plugins() {
       noroot wp plugin update ${plugin} --quiet
     fi
   done
-  return 0
 }
 
 # Get the value of a key for WPEngine setups
@@ -56,6 +53,30 @@ update_plugins() {
 get_wpengine_value() {
   local value=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.wpengine.${1} 2> /dev/null`
   echo ${value:-$2}
+}
+
+# Pull a Git repository into a target directory, it must exist first
+# @param $1 Target directory, must exist
+# @param $2 Git repository location
+git_repository_pull() {
+  cd $1
+  if [ ! -z "$2" ]; then
+    echo -e "\nChecking Git repository at $2...\n"
+    if [ "1" == "$(is_directory_repo_root)" ]; then
+      echo "No existing site repository, clearing the directory prior to cloning..."
+      noroot rm -rf * 2> /dev/null
+      noroot rm -rf .* 2> /dev/null
+      echo -e "\nCloning repository...\n"
+      noroot git clone $2 .
+    else
+      if [ "0" == "$(is_git_working_copy_clean)" ]; then
+        echo -e "\nUpdating clean branch $(git rev-parse --abbrev-ref HEAD) from $2...\n"
+        noroot git pull
+      else
+        echo -e "\nBranch $(git rev-parse --abbrev-ref HEAD) has working copy changes, no update.\n"
+      fi
+    fi
+  fi
 }
 
 # Determines if the current directory is the root of a git repository
@@ -112,29 +133,14 @@ touch ${VVV_PATH_TO_SITE}/log/access.log
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   WPENGINE_REPO=`get_wpengine_value 'repo' ''`
-  if [[ ! -d ${VVV_PATH_TO_SITE}/public_html ]]; then 
+  SITE_PATH=${VVV_PATH_TO_SITE}/public_html
+  if [[ ! -d ${SITE_PATH}l ]]; then 
     echo "Making site directory..."
-    mkdir ${VVV_PATH_TO_SITE}/public_html
+    mkdir ${SITE_PATH}
   fi
-  cd ${VVV_PATH_TO_SITE}/public_html
-  
-  if [ ! -z "${WPENGINE_REPO}" ]; then
-    echo -e "\nUsing WPEngine style repository from ${WPENGINE_REPO}...\n"
-    if [ "1" == "$(is_directory_repo_root)" ]; then
-      echo "No existing site repository, clearing the site directory prior to cloning..."
-      noroot rm -rf *
-      noroot rm -rf .*
-      echo -e "\nCloning WPEngine compatible site repository...\n"
-      noroot git clone ${WPENGINE_REPO} .
-    else
-      if [ "0" == "$(is_git_working_copy_clean)" ]; then
-        echo -e "\nUpdating clean branch $(git rev-parse --abbrev-ref HEAD) from ${WPENGINE_REPO}...\n"
-        noroot git pull
-      else
-        echo -e "\nBranch $(git rev-parse --abbrev-ref HEAD) has working copy changes, no update.\n"
-      fi
-    fi
-  fi
+
+  # Pull the latest copy of the site repository (if it's in a clean state)
+  git_repository_pull ${SITE_PATH} ${WPENGINE_REPO}
 
   if [ "1" == "$(is_directory_repo_root)" ]; then
     echo "WPEngine site root has no Git repository, provisioning cannot continue, please check site settings"
