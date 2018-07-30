@@ -2,6 +2,8 @@
 # Provision WordPress Stable
 # noroot() runs commands in the context of the vagrant user to maintain user permissions
 
+#### Functions ####
+
 # Get the set of plugins to active (use for custom plugins)
 activate_plugins() {
   local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.activate 2> /dev/null`
@@ -9,42 +11,39 @@ activate_plugins() {
     if ! noroot wp plugin is-installed ${plugin}; then
       echo -e "\nPlugin ${plugin} not found, could not activate...\n"
     else
-      echo -e "\nActivating plugin ${plugin}...\n"
+      echo -e "\nActivating plugin ${plugin}...\n"  
       noroot wp plugin activate ${plugin} --quiet
     fi
   done
 }
 
-# Install all requested plugins
-install_plugins() {
-  local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.install 2> /dev/null`
-  for plugin in ${plugins}; do
-    if ! noroot wp plugin is-installed ${plugin}; then
-      echo -e "\nInstalling and activating new plugin ${plugin}...\n"
-      noroot wp plugin install ${plugin} --activate --quiet
-    else
-      echo -e "\nPlugin ${plugin} is already installed.\n"
-    fi
-  done
+# Make sure a directory exists at given path
+# @param $1 Directory path
+ensure_directory_exists() {
+  if [[ ! -d $1 ]]; then 
+    echo "Making site directory $1..."
+    mkdir $1
+  fi
 }
 
-# Updates installed plugins, if autoupdate is enabled (on)
-update_plugins() {
-  local autoupdate=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.plugins.autoupdate 2> /dev/null`
-  if [ "on" != "${autoupdate}" ]; then
-    echo "Plugin auto-update disabled, skipping update"
-    return;
-  fi
+# Get the set of requested VIP classic repositories
+# @param $1 Base repository path
+get_vip_repos() {
+  # Iterate over the set of VIP classic repositories using count position
+  REPOCOUNT=$(cat ${VVV_CONFIG} | shyaml get-length sites.${SITE_ESCAPED}.repos 2> /dev/null)
 
-  local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.install 2> /dev/null`
-  for plugin in ${plugins}; do
-    if ! noroot wp plugin is-installed ${plugin}; then
-      echo -e "\nPlugin ${plugin} is not installed, cannot update...\n"
-    else
-      echo -e "\nPlugin ${plugin} is already installed.\n"
-      noroot wp plugin update ${plugin} --quiet
-    fi
-  done
+  # Only process if there are repositories
+  if [ ${REPOCOUNT:-0} -gt 0 ]
+  then
+    for (( count=0; count<$REPOCOUNT; count++ )); do
+      theme=$(cat $1 | shyaml get-value sites.repos.${count}.theme 2> /dev/null)
+      repo=$(cat $1 | shyaml get-value sites.repos.${count}.repo 2> /dev/null)
+      ensure_directory_exists $1/${theme}
+      git_repository_pull $1/${theme} ${repo}
+    done
+  else
+    echo "No repos"
+  fi
 }
 
 # Get the value of a key for WPEngine setups
@@ -79,6 +78,19 @@ git_repository_pull() {
   fi
 }
 
+# Install all requested plugins
+install_plugins() {
+  local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.install 2> /dev/null`
+  for plugin in ${plugins}; do
+    if ! noroot wp plugin is-installed ${plugin}; then
+      echo -e "\nInstalling and activating new plugin ${plugin}...\n"
+      noroot wp plugin install ${plugin} --activate --quiet
+    else
+      echo -e "\nPlugin ${plugin} is already installed.\n"
+    fi
+  done
+}
+
 # Determines if the current directory is the root of a git repository
 # @returns 0 if the repo root, 1 otherwise
 is_directory_repo_root() {
@@ -100,6 +112,27 @@ is_git_working_copy_clean() {
   
   return 1
 }
+
+# Updates installed plugins, if autoupdate is enabled (on)
+update_plugins() {
+  local autoupdate=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.plugins.autoupdate 2> /dev/null`
+  if [ "on" != "${autoupdate}" ]; then
+    echo "Plugin auto-update disabled, skipping update"
+    return;
+  fi
+
+  local plugins=`cat ${VVV_CONFIG} | shyaml get-values sites.${SITE_ESCAPED}.custom.plugins.install 2> /dev/null`
+  for plugin in ${plugins}; do
+    if ! noroot wp plugin is-installed ${plugin}; then
+      echo -e "\nPlugin ${plugin} is not installed, cannot update...\n"
+    else
+      echo -e "\nPlugin ${plugin} is already installed.\n"
+      noroot wp plugin update ${plugin} --quiet
+    fi
+  done
+}
+
+### Scripts ###
 
 # Standard configuration variables
 DOMAIN=`get_primary_host "${VVV_SITE_NAME}".test`
@@ -134,12 +167,9 @@ touch ${VVV_PATH_TO_SITE}/log/access.log
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   WPENGINE_REPO=`get_wpengine_value 'repo' ''`
   SITE_PATH=${VVV_PATH_TO_SITE}/public_html
-  if [[ ! -d ${SITE_PATH} ]]; then 
-    echo "Making site directory ${SITE_PATH}..."
-    mkdir ${SITE_PATH}
-  fi
 
   # Pull the latest copy of the site repository (if it's in a clean state)
+  ensure_directory_exists ${SITE_PATH}
   git_repository_pull ${SITE_PATH} ${WPENGINE_REPO}
 
   if [[ ! is_directory_repo_root ]]; then
@@ -183,6 +213,16 @@ else
   echo "Updating WordPress Stable..."
 
   noroot wp core update --version="${WP_VERSION}"
+fi
+
+# VIP sites use themes and plugins under wp-content/themes/vip
+if [ "vip" == "${WP_HOST_TYPE}" ]; then
+  # Make the root VIP directory path
+  VIP_PATH=${VVV_PATH_TO_SITE}/public_html/wp-content/themes/vip
+  ensure_directory_exists ${VIP_PATH}
+
+  # Create or update site theme and plugin repositories
+  get_vip_repos ${VIP_PATH}
 fi
 
 # Install and update all requested plugins, then activate any custom plugins 
