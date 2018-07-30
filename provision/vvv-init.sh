@@ -38,8 +38,11 @@ get_vip_repos() {
     for (( count=0; count<$REPOCOUNT; count++ )); do
       theme=$(cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.vip.repos.${count}.theme 2> /dev/null)
       repo=$(cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.vip.repos.${count}.repo 2> /dev/null)
-      ensure_directory_exists $1/${theme}
-      git_repository_pull $1/${theme} ${repo}
+      themetarget=$1/${theme}
+
+      echo -e "Checking VIP directory ${themetarget} for repository ${repo}"
+      ensure_directory_exists ${themetarget}
+      git_repository_pull ${themetarget} ${repo}
     done
   else
     echo "No repos"
@@ -95,22 +98,14 @@ install_plugins() {
 # @returns 0 if the repo root, 1 otherwise
 is_directory_repo_root() {
   # Root directory has no prefix
-  if [ -z "$(git rev-parse --show-prefix)" ]; then
-    return 0
-  fi
-  
-  return 1
+  [ -z "$(git rev-parse --show-prefix)" ]
 }
 
 # Determines if the current git repositories working copy is clean (no changes)
 # @returns 0 if clean, 1 otherwise
 is_git_working_copy_clean() {
   # Root directory has no prefix
-  if [ -n "$(git diff-index --quiet HEAD --)" ]; then
-    return 0
-  fi
-  
-  return 1
+  [ -n "$(git diff-index --quiet HEAD --)" ]
 }
 
 # Updates installed plugins, if autoupdate is enabled (on)
