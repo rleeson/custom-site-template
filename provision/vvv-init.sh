@@ -36,8 +36,8 @@ get_vip_repos() {
   if [ ${REPOCOUNT:-0} -gt 0 ]
   then
     for (( count=0; count<$REPOCOUNT; count++ )); do
-      theme=$(cat $1 | shyaml get-value sites.${SITE_ESCAPED}.custom.vip.repos.${count}.theme 2> /dev/null)
-      repo=$(cat $1 | shyaml get-value sites.${SITE_ESCAPED}.custom.vip.repos.${count}.repo 2> /dev/null)
+      theme=$(cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.vip.repos.${count}.theme 2> /dev/null)
+      repo=$(cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.vip.repos.${count}.repo 2> /dev/null)
       ensure_directory_exists $1/${theme}
       git_repository_pull $1/${theme} ${repo}
     done
@@ -183,13 +183,13 @@ fi
 cd ${SITE_PATH}
 
 # Ensure the requested version of WordPress is downloaded to the site directory
-if [[ ! -f "${VVV_PATH_TO_SITE}/public_html/wp-load.php" ]]; then
+if [[ ! -f "${SITE_PATH}/wp-load.php" ]]; then
   echo "Downloading WordPress..."
 	noroot wp core download --version="${WP_VERSION}"
 fi
 
 # Add a configuration file if one is missing
-if [[ ! -f "${VVV_PATH_TO_SITE}/public_html/wp-config.php" ]]; then
+if [[ ! -f "${SITE_PATH}/wp-config.php" ]]; then
   echo "Configuring WordPress Stable..."
   noroot wp core config --dbname="${DB_NAME}" --dbuser=wp --dbpass=wp --quiet --extra-php <<PHP
 define( 'WP_DEBUG', true );
@@ -219,7 +219,7 @@ fi
 # VIP sites use themes and plugins under wp-content/themes/vip
 if [ "vip" == "${WP_HOST_TYPE}" ]; then
   # Make the root VIP directory path
-  VIP_PATH=${VVV_PATH_TO_SITE}/public_html/wp-content/themes/vip
+  VIP_PATH=${SITE_PATH}/wp-content/themes/vip
   ensure_directory_exists ${VIP_PATH}
 
   # Create or update site theme and plugin repositories
