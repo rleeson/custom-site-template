@@ -30,14 +30,14 @@ ensure_directory_exists() {
 # @param $1 Base repository path
 get_vip_repos() {
   # Iterate over the set of VIP classic repositories using count position
-  REPOCOUNT=$(cat ${VVV_CONFIG} | shyaml get-length sites.${SITE_ESCAPED}.repos 2> /dev/null)
+  REPOCOUNT=$(cat ${VVV_CONFIG} | shyaml get-length sites.${SITE_ESCAPED}.custom.vip.repos 2> /dev/null)
 
   # Only process if there are repositories
   if [ ${REPOCOUNT:-0} -gt 0 ]
   then
     for (( count=0; count<$REPOCOUNT; count++ )); do
-      theme=$(cat $1 | shyaml get-value sites.repos.${count}.theme 2> /dev/null)
-      repo=$(cat $1 | shyaml get-value sites.repos.${count}.repo 2> /dev/null)
+      theme=$(cat $1 | shyaml get-value sites.${SITE_ESCAPED}.custom.vip.repos.${count}.theme 2> /dev/null)
+      repo=$(cat $1 | shyaml get-value sites.${SITE_ESCAPED}.custom.vip.repos.${count}.repo 2> /dev/null)
       ensure_directory_exists $1/${theme}
       git_repository_pull $1/${theme} ${repo}
     done
@@ -163,13 +163,14 @@ mkdir -p ${VVV_PATH_TO_SITE}/log
 touch ${VVV_PATH_TO_SITE}/log/error.log
 touch ${VVV_PATH_TO_SITE}/log/access.log
 
+SITE_PATH=${VVV_PATH_TO_SITE}/public_html
+ensure_directory_exists ${SITE_PATH}
+
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   WPENGINE_REPO=`get_wpengine_value 'repo' ''`
-  SITE_PATH=${VVV_PATH_TO_SITE}/public_html
 
   # Pull the latest copy of the site repository (if it's in a clean state)
-  ensure_directory_exists ${SITE_PATH}
   git_repository_pull ${SITE_PATH} ${WPENGINE_REPO}
 
   if [[ ! is_directory_repo_root ]]; then
@@ -179,7 +180,7 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
 fi
 
 # Make sure we are in the site directory before installing/modifying WordPress
-cd ${VVV_PATH_TO_SITE}/public_html
+cd ${SITE_PATH}
 
 # Ensure the requested version of WordPress is downloaded to the site directory
 if [[ ! -f "${VVV_PATH_TO_SITE}/public_html/wp-load.php" ]]; then
