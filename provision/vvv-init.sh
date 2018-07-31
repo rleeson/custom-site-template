@@ -197,13 +197,14 @@ if [ "vip" == "${WP_HOST_TYPE}" ]; then
 
   # Get the core VIP classic SVN plugin repository
   PLUGIN_PATH=${VIP_PATH}/plugins
-  if [ ! -d ${PLUGIN_PATH} ]; then
-    echo -e "\nInitializing the VIP plugin repository\n"
-    noroot svn co https://vip-svn.wordpress.com/plugins/ ${PLUGIN_PATH}
-  else
-    cd "${PLUGIN_PATH}"
+  cd "${PLUGIN_PATH}"
+  if [[ -e .svn ]]; then
+    echo "Updating the VIP plugin repository..."
     noroot svn cleanup
     noroot svn up
+  else
+    echo "Initializing the VIP plugin repository, this may take a while..."
+    noroot svn co https://vip-svn.wordpress.com/plugins/ ${PLUGIN_PATH}
   fi
 
   # Create or update site theme and plugin repositories
