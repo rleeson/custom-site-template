@@ -29,7 +29,7 @@ fi
 if [[ ! -f "${SITE_PATH}/wp-config.php" ]]; then
   cd "${SITE_PATH}"
   echo "Configuring WordPress trunk..."
-  noroot wp config --dbname="${DB_NAME}" --dbuser=wp --dbpass=wp --dbprefix=${DB_PREFIX} --quiet --path="${SITE_PATH}/src" --extra-php <<PHP
+  noroot wp config --dbname="${DB_NAME}" --dbuser=wp --dbpass=wp --dbprefix="${DB_PREFIX}" --quiet --path="${SITE_PATH}/src" --extra-php <<PHP
 define( 'WP_DEBUG', true );
 define( 'WP_DEBUG_LOG', true );
 define( 'SCRIPT_DEBUG', true );
@@ -53,7 +53,8 @@ if ! $(noroot wp core is-installed --path="${SITE_PATH}/src"); then
   noroot wp core ${INSTALL_COMMAND} --url="${DOMAIN}" --quiet --title="${SITE_TITLE}" --admin_name=${WP_ADMIN_USER} --admin_email="${WP_ADMIN_EMAIL}" --admin_password="${WP_ADMIN_PASS}" --path="${SITE_PATH}/src"
 fi
 
-if [[ ! -d "${SITE_PATH}/build" ]]; then
+# Check to see if the build process has been run by looking for the WP loader
+if [[ ! -f "${SITE_PATH}/build/wp-load.php" ]]; then
   echo "Initializing build install via grunt, this may take a few moments..."
   cd "${SITE_PATH}"
   noroot grunt
