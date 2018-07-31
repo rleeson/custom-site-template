@@ -207,11 +207,23 @@ else
   noroot wp core update --version="${WP_VERSION}"
 fi
 
+# VIP Theme and Plugin updates
 # VIP sites use themes and plugins under wp-content/themes/vip
 if [ "vip" == "${WP_HOST_TYPE}" ]; then
   # Make the root VIP directory path
   VIP_PATH=${SITE_PATH}/wp-content/themes/vip
   ensure_directory_exists ${VIP_PATH}
+
+  # Get the core VIP classic SVN plugin repository
+  PLUGIN_PATH=${VIP_PATH}/plugins
+  if [ ! -d ${PLUGIN_PATH} ]; then
+    echo -e "\nInitializing the VIP plugin repository\n"
+    svn co https://vip-svn.wordpress.com/plugins/ ${PLUGIN_PATH}
+  else
+    cd "${PLUGIN_PATH}"
+    svn cleanup
+    svn up
+  fi
 
   # Create or update site theme and plugin repositories
   get_vip_repos ${VIP_PATH}
