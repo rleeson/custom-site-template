@@ -157,9 +157,9 @@ mysql -u root --password=root -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO wp@loc
 echo -e "\n DB operations done.\n\n"
 
 # Nginx Logs
-mkdir -p ${VVV_PATH_TO_SITE}/log
-touch ${VVV_PATH_TO_SITE}/log/error.log
-touch ${VVV_PATH_TO_SITE}/log/access.log
+noroot mkdir -p ${VVV_PATH_TO_SITE}/log
+noroot touch ${VVV_PATH_TO_SITE}/log/error.log
+noroot touch ${VVV_PATH_TO_SITE}/log/access.log
 
 # Verify the base site path
 SITE_PATH=${VVV_PATH_TO_SITE}/public_html
@@ -199,11 +199,11 @@ if [ "vip" == "${WP_HOST_TYPE}" ]; then
   PLUGIN_PATH=${VIP_PATH}/plugins
   if [ ! -d ${PLUGIN_PATH} ]; then
     echo -e "\nInitializing the VIP plugin repository\n"
-    svn co https://vip-svn.wordpress.com/plugins/ ${PLUGIN_PATH}
+    noroot svn co https://vip-svn.wordpress.com/plugins/ ${PLUGIN_PATH}
   else
     cd "${PLUGIN_PATH}"
-    svn cleanup
-    svn up
+    noroot svn cleanup
+    noroot svn up
   fi
 
   # Create or update site theme and plugin repositories
@@ -221,7 +221,7 @@ echo "Checking plugin statuses..."
 noroot wp plugin status
 
 # Add/replace the Nginx site configuration for all site domains
-cp -f "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf.tmpl" "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf"
+noroot cp -f "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf.tmpl" "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf"
 sed -i "s#{{DOMAINS_HERE}}#${DOMAINS}#" "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf"
 
 # Add TLS certificates for the environment, either generic or via the TLS CA utility
