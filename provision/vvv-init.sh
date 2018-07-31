@@ -190,7 +190,7 @@ fi
 if [ "vip" == "${WP_HOST_TYPE}" ]; then
   # Make the root VIP directory path
   VIP_PATH=${SITE_PATH}/wp-content/themes/vip
-  if [ "unittesting" == "${WP_VERSION}"]; then 
+  if [ "unittesting" == "${WP_VERSION}" ]; then 
     VIP_PATH=${SITE_PATH}/build/wp-content/themes/vip
   fi
   ensure_directory_exists ${VIP_PATH}

@@ -35,7 +35,7 @@ define( 'WP_DEBUG_LOG', true );
 define( 'SCRIPT_DEBUG', true );
 PHP
   
-  mv "${SITE_PATH}/src/wp-config.php" "${SITE_PATH}/wp-config.php"
+  noroot mv "${SITE_PATH}/src/wp-config.php" "${SITE_PATH}/wp-config.php"
 fi
 
 if ! $(noroot wp core is-installed --path="${SITE_PATH}/src"); then
