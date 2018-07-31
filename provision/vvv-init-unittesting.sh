@@ -9,11 +9,13 @@ if [[ ! -f "${SITE_PATH}/src/wp-load.php" ]]; then
   
   # Setup build dependencies via NPM
   cd "${SITE_PATH}"
-  noroot npm install
+  echo "NPM install, this may take a few minutes..."
+  noroot npm install 2> /dev/null
 else
   cd "${SITE_PATH}"
   echo "Updating WordPress SVN from ${DEVELOP_SVN}"
   if [[ -e .svn ]]; then
+    noroot svn cleanup
     noroot svn up
   else
     if [[ $(noroot git rev-parse --abbrev-ref HEAD) == 'master' ]]; then
@@ -22,14 +24,18 @@ else
       echo "Skip auto git pull on develop.git.wordpress.org since not on master branch"
     fi
   fi
-  noroot npm install &>/dev/null
+
+  echo "NPM install, this may take a few minutes..."
+  noroot npm install 2> /dev/null
+  echo "Grunt build of the source, this may take a few minutes..."
   noroot grunt
+  echo "Grunt built."
 fi
 
 if [[ ! -f "${SITE_PATH}/wp-config.php" ]]; then
   cd "${SITE_PATH}"
   echo "Configuring WordPress trunk..."
-  noroot wp config --dbname="${DB_NAME}" --dbuser=wp --dbpass=wp --dbprefix="${DB_PREFIX}" --quiet --path="${SITE_PATH}/src" --extra-php <<PHP
+  noroot wp config create --dbname="${DB_NAME}" --dbuser=wp --dbpass=wp --dbprefix="${DB_PREFIX}" --quiet --path="${SITE_PATH}/src" --extra-php <<PHP
 define( 'WP_DEBUG', true );
 define( 'WP_DEBUG_LOG', true );
 define( 'SCRIPT_DEBUG', true );
@@ -55,10 +61,10 @@ fi
 
 # Check to see if the build process has been run by looking for the WP loader
 if [[ ! -f "${SITE_PATH}/build/wp-load.php" ]]; then
-  echo "Initializing build install via grunt, this may take a few moments..."
+  echo "Grunt build of the source, this may take a few minutes..."
   cd "${SITE_PATH}"
   noroot grunt
-  echo "Grunt initialized."
+  echo "Grunt built."
 fi
 
 noroot mkdir -p "${SITE_PATH}/src/wp-content/mu-plugins" "${SITE_PATH}/build/wp-content/mu-plugins"
