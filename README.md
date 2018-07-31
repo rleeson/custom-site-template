@@ -14,10 +14,38 @@ On provision, if the site (public_html) directory does not contain a Git reposit
 - subdomain: subdomain multisite
 - subdirectory: subdirectory multisite
 
+### Installation Version [custom.wp_version]
+- latest (Default): Latest stable 
+- nightly: Nightly core updates
+- unittesting: Unit testing build
+
 ### Deployment/Target Environment [custom.wp_host_type]
 - self (Default): independently/self hosted, though really, just use the base repository for this option
 - vip (NYI): VIP classic site structure
 - wpengine: WPEngine installs, Git repository at the root of the site; this assumes WP Core is not versioned
+
+### VIP Repositories [custom.vip.repos]
+List of theme/plugin directories and the associated HTTP(S) or SSH path to a repository.  Each listed repository location, {repo}, is initialized or updated in the location /wp-content/themes/vip/{theme}.  See notes below for SSH keys and fingerprints.
+
+```
+myvipsite:
+  repo: https://github.com/rleeson/custom-site-template
+  hosts:
+    - myvipsite.test
+  custom:
+    wp_type: subdirectory
+    wp_host_type: vip
+    vip:
+      repos: 
+        - theme: vip-plugins 
+          repo: https://github.com/someone/vip-plugins.git
+        - theme: viptheme1
+          repo: https://github.com/someone/viptheme1.git
+        - theme: viptheme2
+          repo: https://github.com/someone/viptheme2.git
+```
+
+This sample installs WordPress in a subdirectory based multi-site installation with three (3) VIP repositories. 
 
 ### WPEngine Site Repository [custom.wpengine.repo]
 HTTP(S) or SSH path to a repository, expected to be the root of a site.  See notes below for SSH keys and fingerprints.

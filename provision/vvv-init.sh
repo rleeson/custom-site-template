@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Provision WordPress Stable
+# Provision WordPress
 # noroot() runs commands in the context of the vagrant user to maintain user permissions
 
 #### Functions ####
@@ -129,10 +129,9 @@ update_plugins() {
 DOMAIN=`get_primary_host "${VVV_SITE_NAME}".test`
 DOMAINS=`get_hosts "${DOMAIN}"`
 SITE_TITLE=`get_config_value 'site_title' "${DOMAIN}"`
-WP_VERSION=`get_config_value 'wp_version' 'latest'`
-WP_TYPE=`get_config_value 'wp_type' "single"`
 DB_NAME=`get_config_value 'db_name' "${VVV_SITE_NAME}"`
 DB_NAME=${DB_NAME//[\\\/\.\<\>\:\"\'\|\?\!\*-]/}
+DB_PREFIX=`get_config_value 'wp_db_prefix' 'wp_'`
 
 # Optional Wordpress default user values
 WP_ADMIN_EMAIL=`get_config_value 'wp_admin_email' 'admin@local.test'`
@@ -143,7 +142,15 @@ WP_ADMIN_PASS=`get_config_value 'wp_admin_pass' 'password'`
 # Accepted types are 'self', 'wpengine', 'vip'
 WP_HOST_TYPE=`get_config_value 'wp_host_type' 'self'`
 
-# Make a database, if we don't already have one
+# Choose the type of local installation
+# Accepted types are 'single', 'subdirectory', 'subdomain'
+WP_TYPE=`get_config_value 'wp_type' "single"`
+
+# Choose the version of WordPress core to install
+# Accepted types are 'latest', 'nightly', 'unittesting'
+WP_VERSION=`get_config_value 'wp_version' 'latest'`
+
+# Verify database existence and user privileges
 echo -e "\nCreating database '${DB_NAME}' (if it's not already there)"
 mysql -u root --password=root -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME}"
 mysql -u root --password=root -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO wp@localhost IDENTIFIED BY 'wp';"
@@ -154,6 +161,7 @@ mkdir -p ${VVV_PATH_TO_SITE}/log
 touch ${VVV_PATH_TO_SITE}/log/error.log
 touch ${VVV_PATH_TO_SITE}/log/access.log
 
+# Verify the base site path
 SITE_PATH=${VVV_PATH_TO_SITE}/public_html
 ensure_directory_exists ${SITE_PATH}
 
@@ -170,41 +178,11 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   fi
 fi
 
-# Make sure we are in the site directory before installing/modifying WordPress
-cd ${SITE_PATH}
-
-# Ensure the requested version of WordPress is downloaded to the site directory
-if [[ ! -f "${SITE_PATH}/wp-load.php" ]]; then
-  echo "Downloading WordPress..."
-	noroot wp core download --version="${WP_VERSION}"
-fi
-
-# Add a configuration file if one is missing
-if [[ ! -f "${SITE_PATH}/wp-config.php" ]]; then
-  echo "Configuring WordPress Stable..."
-  noroot wp core config --dbname="${DB_NAME}" --dbuser=wp --dbpass=wp --quiet --extra-php <<PHP
-define( 'WP_DEBUG', true );
-PHP
-fi
-
-# New installs will choose the correct install type from WP_TYPE
-# Existing installs will be updated for the requested version
-if [[ ! $(noroot wp core is-installed) ]]; then
-  echo "Installing WordPress Stable..."
-
-  if [ "${WP_TYPE}" = "subdomain" ]; then
-    INSTALL_COMMAND="multisite-install --subdomains"
-  elif [ "${WP_TYPE}" = "subdirectory" ]; then
-    INSTALL_COMMAND="multisite-install"
-  else
-    INSTALL_COMMAND="install"
-  fi
-
-  noroot wp core ${INSTALL_COMMAND} --url="${DOMAIN}" --quiet --title="${SITE_TITLE}" --admin_name=${WP_ADMIN_USER} --admin_email="${WP_ADMIN_EMAIL}" --admin_password="${WP_ADMIN_PASS}"
+# Install/Update the core WordPress installation, optionally via the unit testing compatible source build
+if [ "unittesting" == "${WP_VERSION}" ]; then
+  source vvv-init-unittesting.sh
 else
-  echo "Updating WordPress Stable..."
-
-  noroot wp core update --version="${WP_VERSION}"
+  source vvv-init-standard.sh
 fi
 
 # VIP Theme and Plugin updates
@@ -212,6 +190,9 @@ fi
 if [ "vip" == "${WP_HOST_TYPE}" ]; then
   # Make the root VIP directory path
   VIP_PATH=${SITE_PATH}/wp-content/themes/vip
+  if [ "unittesting" == "${WP_VERSION}"]; then 
+    VIP_PATH=${SITE_PATH}/build/wp-content/themes/vip
+  fi
   ensure_directory_exists ${VIP_PATH}
 
   # Get the core VIP classic SVN plugin repository
