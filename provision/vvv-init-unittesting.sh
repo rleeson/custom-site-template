@@ -2,7 +2,7 @@
 # Install and configure the latest source built version of WordPress
 
 # Install or update the source dependencies of WordPress before building
-DEVELOP_SVN="https://develop.svn.wordpress.org/trunk"
+DEVELOP_SVN=`get_config_value 'wp_unittesting_repo' 'https://develop.svn.wordpress.org/trunk'`
 if [[ ! -f "${SITE_PATH}/src/wp-load.php" ]]; then
   echo "Check out WordPress SVN from ${DEVELOP_SVN}"
   noroot svn checkout "${DEVELOP_SVN}" "${SITE_PATH}"

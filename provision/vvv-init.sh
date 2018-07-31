@@ -179,7 +179,9 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
 fi
 
 # Install/Update the core WordPress installation, optionally via the unit testing compatible source build
+NGINX_ROOT=${SITE_PATH}
 if [ "unittesting" == "${WP_VERSION}" ]; then
+  NGINX_ROOT=${SITE_PATH}/build
   source vvv-init-unittesting.sh
 else
   source vvv-init-standard.sh

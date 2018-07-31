@@ -17,7 +17,7 @@ On provision, if the site (public_html) directory does not contain a Git reposit
 ### Installation Version [custom.wp_version]
 - latest (Default): Latest stable 
 - nightly: Nightly core updates
-- unittesting: Unit testing build
+- unittesting: Unit testing build (in case the SVN path changes, override at custom.wp_unittesting_svn)
 
 ### Deployment/Target Environment [custom.wp_host_type]
 - self (Default): independently/self hosted, though really, just use the base repository for this option
