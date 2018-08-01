@@ -2,10 +2,10 @@ server {
     listen       80;
     listen       443 ssl;
     server_name  {{DOMAINS_HERE}};
-    root         {NGINX_ROOT};
+    root         {{NGINX_PATH}};
 
-    error_log    {vvv_path_to_site}/log/error.log;
-    access_log   {vvv_path_to_site}/log/access.log;
+    error_log    {VVV_PATH_TO_SITE}/log/error.log;
+    access_log   {VVV_PATH_TO_SITE}/log/access.log;
 
     set          $upstream {upstream};
 

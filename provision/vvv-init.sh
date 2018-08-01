@@ -179,9 +179,7 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
 fi
 
 # Install/Update the core WordPress installation, optionally via the unit testing compatible source build
-NGINX_ROOT=${SITE_PATH}
 if [ "unittesting" == "${WP_VERSION}" ]; then
-  NGINX_ROOT=${SITE_PATH}/build
   source vvv-init-unittesting.sh
 else
   source vvv-init-standard.sh
@@ -223,9 +221,14 @@ activate_plugins
 echo "Checking plugin statuses..."
 noroot wp plugin status
 
-# Add/replace the Nginx site configuration for all site domains
+# Replace placeholder values in the Nginx configuration for site domains and base hosted directory
 noroot cp -f "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf.tmpl" "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf"
 sed -i "s#{{DOMAINS_HERE}}#${DOMAINS}#" "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf"
+if [ "unittesting" == "${WP_VERSION}" ]; then
+  sed -i "s#{{NGINX_PATH}}#${VVV_PATH_TO_SITE}/public_html/build#" "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf"
+else
+  sed -i "s#{{NGINX_PATH}}#${VVV_PATH_TO_SITE}/public_html#" "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf"
+fi
 
 # Add TLS certificates for the environment, either generic or via the TLS CA utility
 if [ -n "$(type -t is_utility_installed)" ] && [ "$(type -t is_utility_installed)" = function ] && `is_utility_installed core tls-ca`; then

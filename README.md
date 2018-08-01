@@ -15,7 +15,7 @@ On provision, if the site (public_html) directory does not contain a Git reposit
 - subdirectory: subdirectory multisite
 
 ### Installation Version [custom.wp_version]
-- latest (Default): Latest stable 
+- latest (Default): Latest stable
 - nightly: Nightly core updates
 - unittesting: Unit testing build (in case the SVN path changes, override at custom.wp_unittesting_svn)
 
