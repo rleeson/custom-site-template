@@ -22,7 +22,7 @@ activate_plugins() {
 ensure_directory_exists() {
   if [[ ! -d $1 ]]; then 
     echo "Making site directory $1..."
-    mkdir $1
+    noroot mkdir -p $1
   fi
 }
 
@@ -195,17 +195,8 @@ if [ "vip" == "${WP_HOST_TYPE}" ]; then
   fi
   ensure_directory_exists ${VIP_PATH}
 
-  # Get the core VIP classic SVN plugin repository
-  PLUGIN_PATH=${VIP_PATH}/plugins
-  cd "${PLUGIN_PATH}"
-  if [[ -e .svn ]]; then
-    echo "Updating the VIP plugin repository..."
-    noroot svn cleanup
-    noroot svn up
-  else
-    echo "Initializing the VIP plugin repository, this may take a while..."
-    noroot svn co https://vip-svn.wordpress.com/plugins/ ${PLUGIN_PATH}
-  fi
+  # Get the core VIP classic plugin repository
+  git_repository_pull "https://github.com/svn2github/wordpress-vip-plugins" "${VIP_PATH}/plugins"
 
   # Create or update site theme and plugin repositories
   get_vip_repos ${VIP_PATH}

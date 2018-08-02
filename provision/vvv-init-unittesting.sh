@@ -2,35 +2,15 @@
 # Install and configure the latest source built version of WordPress
 
 # Install or update the source dependencies of WordPress before building
-DEVELOP_SVN=`get_config_value 'wp_unittesting_repo' 'https://develop.svn.wordpress.org/trunk'`
-if [[ ! -f "${SITE_PATH}/src/wp-load.php" ]]; then
-  echo "Check out WordPress SVN from ${DEVELOP_SVN}"
-  noroot svn checkout "${DEVELOP_SVN}" "${SITE_PATH}"
-  
-  # Setup build dependencies via NPM
-  cd "${SITE_PATH}"
-  echo "NPM install, this may take a few minutes..."
-  noroot npm install --no-bin-links
-else
-  cd "${SITE_PATH}"
-  echo "Updating WordPress SVN from ${DEVELOP_SVN}"
-  if [[ -e .svn ]]; then
-    noroot svn cleanup
-    noroot svn up
-  else
-    if [[ $(noroot git rev-parse --abbrev-ref HEAD) == 'master' ]]; then
-      noroot git pull --no-edit git://develop.git.wordpress.org/ master
-    else
-      echo "Skip auto git pull on develop.git.wordpress.org since not on master branch"
-    fi
-  fi
+DEVELOP_GIT=`get_config_value 'wp_unittesting_repo' 'https://github.com/WordPress/wordpress-develop'`
+echo "Installing/Updating WordPress from ${DEVELOP_GIT}"
+git_repository_pull ${DEVELOP_GIT} ${SITE_PATH}
 
-  echo "NPM install, this may take a few minutes..."
-  noroot npm install --no-bin-links
-  echo "Grunt build of the source, this may take a few minutes..."
-  noroot grunt
-  echo "Grunt built."
-fi
+# Setup NPM build dependencies
+cd "${SITE_PATH}"
+echo "NPM install, this may take a few minutes..."
+noroot npm install --no-bin-links
+echo "NPM install done"
 
 if [[ ! -f "${SITE_PATH}/wp-config.php" ]]; then
   cd "${SITE_PATH}"
@@ -59,12 +39,10 @@ if ! $(noroot wp core is-installed --path="${SITE_PATH}/src"); then
   noroot wp core ${INSTALL_COMMAND} --url="${DOMAIN}" --quiet --title="${SITE_TITLE}" --admin_name=${WP_ADMIN_USER} --admin_email="${WP_ADMIN_EMAIL}" --admin_password="${WP_ADMIN_PASS}" --path="${SITE_PATH}/src"
 fi
 
-# Check to see if the build process has been run by looking for the WP loader
-if [[ ! -f "${SITE_PATH}/build/wp-load.php" ]]; then
-  echo "Grunt build of the source, this may take a few minutes..."
-  cd "${SITE_PATH}"
-  noroot grunt
-  echo "Grunt built."
-fi
+# Grunt build of unit testing compatible site
+echo "Grunt build of the source, this may take a few minutes..."
+noroot grunt
+echo "Grunt built"
 
-noroot mkdir -p "${SITE_PATH}/src/wp-content/mu-plugins" "${SITE_PATH}/build/wp-content/mu-plugins"
+ensure_directory_exists "${SITE_PATH}/src/wp-content/mu-plugins" 
+ensure_directory_exists "${SITE_PATH}/build/wp-content/mu-plugins"
