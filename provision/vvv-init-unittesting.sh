@@ -10,7 +10,7 @@ if [[ ! -f "${SITE_PATH}/src/wp-load.php" ]]; then
   # Setup build dependencies via NPM
   cd "${SITE_PATH}"
   echo "NPM install, this may take a few minutes..."
-  noroot npm install 2> /dev/null
+  noroot npm install --no-bin-links
 else
   cd "${SITE_PATH}"
   echo "Updating WordPress SVN from ${DEVELOP_SVN}"
@@ -26,7 +26,7 @@ else
   fi
 
   echo "NPM install, this may take a few minutes..."
-  noroot npm install 2> /dev/null
+  noroot npm install --no-bin-links
   echo "Grunt build of the source, this may take a few minutes..."
   noroot grunt
   echo "Grunt built."
