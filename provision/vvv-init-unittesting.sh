@@ -4,7 +4,7 @@
 # Install or update the source dependencies of WordPress before building
 DEVELOP_GIT=`get_config_value 'wp_unittesting_repo' 'https://github.com/WordPress/wordpress-develop'`
 echo "Installing/Updating WordPress from ${DEVELOP_GIT}"
-git_repository_pull ${DEVELOP_GIT} ${SITE_PATH}
+git_repository_pull "${SITE_PATH}" "${DEVELOP_GIT}"
 
 # Setup NPM build dependencies
 cd "${SITE_PATH}"

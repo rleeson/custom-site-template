@@ -170,7 +170,7 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   WPENGINE_REPO=`get_wpengine_value 'repo' ''`
 
   # Pull the latest copy of the site repository (if it's in a clean state)
-  git_repository_pull ${SITE_PATH} ${WPENGINE_REPO}
+  git_repository_pull "${SITE_PATH}" "${WPENGINE_REPO}"
 
   if $(exit $(is_directory_repo_root)); then
     echo "WPEngine site root has no Git repository, provisioning cannot continue, please check site settings"
@@ -196,7 +196,7 @@ if [ "vip" == "${WP_HOST_TYPE}" ]; then
   ensure_directory_exists ${VIP_PATH}
 
   # Get the core VIP classic plugin repository
-  git_repository_pull "https://github.com/svn2github/wordpress-vip-plugins" "${VIP_PATH}/plugins"
+  git_repository_pull "${VIP_PATH}/plugins" "https://github.com/svn2github/wordpress-vip-plugins"
 
   # Create or update site theme and plugin repositories
   get_vip_repos ${VIP_PATH}
