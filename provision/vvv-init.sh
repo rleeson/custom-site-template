@@ -104,6 +104,17 @@ is_git_working_copy_clean() {
   [ -n "$(git diff-index --quiet HEAD --)" ]
 }
 
+# Set the version of node to use via NVM, defaults to "node" if empty, no other validation
+set_node_version() {
+  local version="$1"
+  if [ "" == "${version}" ]; then
+    version="node"
+  fi
+
+  nvm install "${version}"
+  nvm use "${version}"
+}
+
 # Updates installed plugins, if autoupdate is enabled (on)
 update_plugins() {
   local autoupdate=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.plugins.autoupdate 2> /dev/null`
@@ -126,12 +137,15 @@ update_plugins() {
 ### Scripts ###
 
 # Standard configuration variables
-DOMAIN=`get_primary_host "${VVV_SITE_NAME}".test`
-DOMAINS=`get_hosts "${DOMAIN}"`
-SITE_TITLE=`get_config_value 'site_title' "${DOMAIN}"`
 DB_NAME=`get_config_value 'db_name' "${VVV_SITE_NAME}"`
 DB_NAME=${DB_NAME//[\\\/\.\<\>\:\"\'\|\?\!\*-]/}
 DB_PREFIX=`get_config_value 'wp_db_prefix' 'wp_'`
+DOMAIN=`get_primary_host "${VVV_SITE_NAME}".test`
+DOMAINS=`get_hosts "${DOMAIN}"`
+SITE_TITLE=`get_config_value 'site_title' "${DOMAIN}"`
+
+# NVM Version to use (default of 'node' or current)
+NVM_VERSION=`get_config_value 'nvm.version' 'node'`
 
 # Optional Wordpress default user values
 WP_ADMIN_EMAIL=`get_config_value 'wp_admin_email' 'admin@local.test'`
@@ -144,7 +158,7 @@ WP_HOST_TYPE=`get_config_value 'wp_host_type' 'self'`
 
 # Choose the type of local installation
 # Accepted types are 'single', 'subdirectory', 'subdomain'
-WP_TYPE=`get_config_value 'wp_type' "single"`
+WP_TYPE=`get_config_value 'wp_type' 'single'`
 
 # Choose the version of WordPress core to install
 # Accepted types are 'latest', 'nightly', 'unittesting'
@@ -164,6 +178,9 @@ noroot touch ${VVV_PATH_TO_SITE}/log/access.log
 # Verify the base site path
 SITE_PATH=${VVV_PATH_TO_SITE}/public_html
 ensure_directory_exists ${SITE_PATH}
+
+# Check for and use a specific version of Node/NPM for deployment
+set_node_version "${NVM_VERSION}"
 
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then

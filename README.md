@@ -4,6 +4,9 @@ This extends the standard custom site definition outlined at https://github.com/
 ## Overview
 This template creates one or more WordPress development environments using YAML.  Place all site definitions in `vvv-custom.yml`, located in the root directory of VVV.  You can add new/update sites on an existing VVV instance using vagrant up --provision (if the VM is off) or vagrant provision (if already running). See the original repository for explinations of the base features.
 
+## Window Host Users
+In general, when running from Windows, run any provisioning as an Administrator.  Many features, like symbolic linking are only available to Administrators, except when specifically enabled via an option in Windows 10 Creator Edition or Group Policy in other versions.
+
 ## WPEngine Specific
 On provision, if the site (public_html) directory does not contain a Git repository, the directory is cleared then cloned from the specified Git repository.  If a repository exists there and the working copy is clean, it attempts to pull the latest commits from the repository, otherwise, it does nothing.  The goal here is to help automate repository updates when working infrequently on a project, and to protect and uncommited in process work.  If you have something in the directory with no repository though, beward, it will be removed.
 
@@ -23,6 +26,9 @@ On provision, if the site (public_html) directory does not contain a Git reposit
 - self (Default): independently/self hosted, though really, just use the base repository for this option
 - vip (NYI): VIP classic site structure
 - wpengine: WPEngine installs, Git repository at the root of the site; this assumes WP Core is not versioned
+
+### Node Version via NVM [custom.nvm.version]
+Set the version of node used for installation, runs "nvm install ${NVM_VERSION}" followed by and "nvm use ${NVM_VERSION}". Documentation on usage and version labels available [here](https://github.com/creationix/nvm). No validation is performed on the value and it otherwise defaults to the current version of Node.
 
 ### VIP Repositories [custom.vip.repos]
 List of theme/plugin directories and the associated HTTP(S) or SSH path to a repository.  Each listed repository location, {repo}, is initialized or updated in the location /wp-content/themes/vip/{theme}.  See notes below for SSH keys and fingerprints.
