@@ -115,6 +115,17 @@ set_node_version() {
   nvm use "${version}"
 }
 
+# Force an update of NVM
+update_nvm() {
+  (
+    cd "$NVM_DIR"
+    git fetch --tags origin
+    git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" $(git rev-list --tags --max-count=1)`
+  ) && \. "$NVM_DIR/nvm.sh"
+  echo "Updated NVM to version..."
+  nvm --version
+}
+
 # Updates installed plugins, if autoupdate is enabled (on)
 update_plugins() {
   local autoupdate=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.plugins.autoupdate 2> /dev/null`
@@ -180,6 +191,8 @@ SITE_PATH=${VVV_PATH_TO_SITE}/public_html
 ensure_directory_exists ${SITE_PATH}
 
 # Check for and use a specific version of Node/NPM for deployment
+update_nvm
+cd "${SITE_PATH}"
 set_node_version "${NVM_VERSION}"
 
 # WPEngine sites user repositories installed at the site root, pull the site repo first
