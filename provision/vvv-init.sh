@@ -111,19 +111,8 @@ set_node_version() {
     version="node"
   fi
 
-  nvm install "${version}"
-  nvm use "${version}"
-}
-
-# Force an update of NVM
-update_nvm() {
-  (
-    cd "$NVM_DIR"
-    git fetch --tags origin
-    git checkout `git describe --abbrev=0 --tags --match "v[0-9]*" $(git rev-list --tags --max-count=1)`
-  ) && \. "$NVM_DIR/nvm.sh"
-  echo "Updated NVM to version..."
-  nvm --version
+  noroot nvm install "${version}"
+  noroot nvm use "${version}"
 }
 
 # Updates installed plugins, if autoupdate is enabled (on)
