@@ -104,19 +104,6 @@ is_git_working_copy_clean() {
   [ -n "$(git diff-index --quiet HEAD --)" ]
 }
 
-# Set the version of node to use via NVM, defaults to "node" if empty, no other validation
-set_node_version() {
-  local version="$1"
-  if [ "" == "${version}" ]; then
-    version="node"
-  fi
-
-  # Source NVM again to make sure it's available
-  . /srv/config/nvm/nvm.sh
-  noroot nvm install "${version}"
-  noroot nvm use "${version}"
-}
-
 # Updates installed plugins, if autoupdate is enabled (on)
 update_plugins() {
   local autoupdate=`cat ${VVV_CONFIG} | shyaml get-value sites.${SITE_ESCAPED}.custom.plugins.autoupdate 2> /dev/null`
@@ -183,7 +170,8 @@ ensure_directory_exists ${SITE_PATH}
 
 # Check for and use a specific version of Node/NPM for deployment
 cd "${SITE_PATH}"
-set_node_version "${NVM_VERSION}"
+nvm install "${NVM_VERSION}"
+nvm use "${NVM_VERSION}"
 
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
