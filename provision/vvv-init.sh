@@ -169,7 +169,8 @@ ensure_directory_exists ${SITE_PATH}
 cd "${SITE_PATH}"
 NVM_VERSION=`get_config_value 'nvm.version' 'node'`
 echo -e "Setting Node to version ${NVM_VERSION}"
-[ -s /srv/config/nvm/nvm.sh ] && source /srv/config/nvm/nvm.sh && nvm install '${NVM_VERSION}' && nvm use '${NVM_VERSION}'
+NVM_DIR="/srv/config/nvm"
+[ -s ${NVM_DIR}/nvm.sh ] && source ${NVM_DIR}/nvm.sh && nvm install "${NVM_VERSION}" && nvm use "${NVM_VERSION}"
 
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
@@ -203,6 +204,7 @@ if [ "vip" == "${WP_HOST_TYPE}" ]; then
   ensure_directory_exists ${VIP_PATH}
 
   # Get the core VIP classic plugin repository
+  ensure_directory_exists ${VIP_PATH}/plugins
   git_repository_pull "${VIP_PATH}/plugins" "https://github.com/svn2github/wordpress-vip-plugins"
 
   # Create or update site theme and plugin repositories
