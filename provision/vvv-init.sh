@@ -169,8 +169,8 @@ ensure_directory_exists ${SITE_PATH}
 NVM_VERSION=`get_config_value 'nvm.version' 'node'`
 echo -e "Setting Node to version ${NVM_VERSION}"
 cd "${SITE_PATH}"
-source /srv/config/nvm/nvm.sh install "${NVM_VERSION}"
-source /srv/config/nvm/nvm.sh use "${NVM_VERSION}"
+source /srv/config/nvm/nvm.sh install ${NVM_VERSION}
+source /srv/config/nvm/nvm.sh use ${NVM_VERSION}
 
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
@@ -186,7 +186,7 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
 fi
 
 # Install/Update the core WordPress installation, optionally via the unit testing compatible source build
-cd "${SITE_PATH}"
+cd "${VVV_PATH_TO_SITE}"
 if [ "unittesting" == "${WP_VERSION}" ]; then
   source provision/vvv-init-unittesting.sh
 else
