@@ -133,9 +133,6 @@ DOMAIN=`get_primary_host "${VVV_SITE_NAME}".test`
 DOMAINS=`get_hosts "${DOMAIN}"`
 SITE_TITLE=`get_config_value 'site_title' "${DOMAIN}"`
 
-# NVM Version to use (default of 'node' or current)
-NVM_VERSION=`get_config_value 'nvm.version' 'node'`
-
 # Optional Wordpress default user values
 WP_ADMIN_EMAIL=`get_config_value 'wp_admin_email' 'admin@local.test'`
 WP_ADMIN_USER=`get_config_value 'wp_admin_user' 'admin'`
@@ -168,7 +165,9 @@ noroot touch ${VVV_PATH_TO_SITE}/log/access.log
 SITE_PATH=${VVV_PATH_TO_SITE}/public_html
 ensure_directory_exists ${SITE_PATH}
 
-# Check for and use a specific version of Node/NPM for deployment
+# Node/NVM Version to use (default of 'node' or current)
+NVM_VERSION=`get_config_value 'nvm.version' 'node'`
+echo -e "Setting Node to version ${NVM_VERSION}"
 cd "${SITE_PATH}"
 source /srv/config/nvm/nvm.sh install "${NVM_VERSION}"
 source /srv/config/nvm/nvm.sh use "${NVM_VERSION}"
@@ -187,10 +186,11 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
 fi
 
 # Install/Update the core WordPress installation, optionally via the unit testing compatible source build
+cd "${SITE_PATH}"
 if [ "unittesting" == "${WP_VERSION}" ]; then
-  source vvv-init-unittesting.sh
+  source provision/vvv-init-unittesting.sh
 else
-  source vvv-init-standard.sh
+  source provision/vvv-init-standard.sh
 fi
 
 # VIP Theme and Plugin updates
