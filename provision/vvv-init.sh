@@ -166,11 +166,10 @@ SITE_PATH=${VVV_PATH_TO_SITE}/public_html
 ensure_directory_exists ${SITE_PATH}
 
 # Node/NVM Version to use (default of 'node' or current)
+cd "${SITE_PATH}"
 NVM_VERSION=`get_config_value 'nvm.version' 'node'`
 echo -e "Setting Node to version ${NVM_VERSION}"
-cd "${SITE_PATH}"
-source /srv/config/nvm/nvm.sh install ${NVM_VERSION}
-source /srv/config/nvm/nvm.sh use ${NVM_VERSION}
+[ -s /srv/config/nvm/nvm.sh ] && source /srv/config/nvm/nvm.sh && nvm install "${NVM_VERSION}" && nvm use "${NVM_VERSION}"
 
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
