@@ -170,8 +170,8 @@ ensure_directory_exists ${SITE_PATH}
 
 # Check for and use a specific version of Node/NPM for deployment
 cd "${SITE_PATH}"
-nvm install "${NVM_VERSION}"
-nvm use "${NVM_VERSION}"
+source /srv/config/nvm/nvm.sh install "${NVM_VERSION}"
+source /srv/config/nvm/nvm.sh use "${NVM_VERSION}"
 
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
