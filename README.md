@@ -27,8 +27,10 @@ On provision, if the site (public_html) directory does not contain a Git reposit
 - vip (NYI): VIP classic site structure
 - wpengine: WPEngine installs, Git repository at the root of the site; this assumes WP Core is not versioned
 
-### Node Version via NVM [custom.nvm.version]
-Set the version of node used for installation, runs "nvm install ${NVM_VERSION}" followed by and "nvm use ${NVM_VERSION}". Documentation on usage and version labels available [here](https://github.com/creationix/nvm). No validation is performed on the value and it otherwise defaults to the current version of Node.
+### Node (via NVM) and NPM Versions [custom.node]
+Set the version of node used for installation, runs "nvm install ${NVM_VERSION}" followed by and "nvm use ${NVM_VERSION}", then the version of npm used (globally) by "npm i -g npm@${NPM_VERSION}". Documentation on usage and version labels available [here](https://github.com/creationix/nvm). No validation is performed on the value and it otherwise defaults to the current version of Node.
+
+The two settings are custom.node.npm_version and custom.node.nvm_version.
 
 ### VIP Repositories [custom.vip.repos]
 List of theme/plugin directories and the associated HTTP(S) or SSH path to a repository.  Each listed repository location, {repo}, is initialized or updated in the location /wp-content/themes/vip/{theme}.  See notes below for SSH keys and fingerprints.

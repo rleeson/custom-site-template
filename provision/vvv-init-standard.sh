@@ -14,7 +14,7 @@ fi
 # Add a configuration file if one is missing
 if [[ ! -f "${SITE_PATH}/wp-config.php" ]]; then
   echo "Configuring WordPress Stable..."
-  noroot wp config --dbname="${DB_NAME}" --dbuser=wp --dbpass=wp --dbprefix="${DB_PREFIX}" --quiet --extra-php <<PHP
+  noroot wp config create --dbname="${DB_NAME}" --dbuser=wp --dbpass=wp --dbprefix="${DB_PREFIX}" --quiet --extra-php <<PHP
 define( 'WP_DEBUG', true );
 PHP
 fi
