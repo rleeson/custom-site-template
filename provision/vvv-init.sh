@@ -167,16 +167,19 @@ ensure_directory_exists ${SITE_PATH}
 
 # Node/NVM Version to use (default of 'node' or current)
 cd "${SITE_PATH}"
-NVM_VERSION=`get_config_value 'nvm.version' 'node'`
+NPM_VERSION=`get_config_value 'node.npm_version' 'node'`
 export NVM_DIR='/srv/config/nvm'
 if [ -d $NVM_DIR ]; then
   echo -e "Setting Node to version ${NVM_VERSION} using NVM at ${NVM_DIR}"
-  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" 
-  nvm install ${NVM_VERSION}
-  nvm use ${NVM_VERSION}
-  nvm debug
+  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm install ${NVM_VERSION} && nvm use ${NVM_VERSION}
 else
   echo "Could not locate NVM"
+fi
+
+# NPM version to use (set globally for now)
+NVM_VERSION=`get_config_value 'node.nvm_version' 'node'`
+if [ -z $NPM_VERSION ]; then
+  npm i -g npm@${NPM_VERSION}
 fi
 
 # WPEngine sites user repositories installed at the site root, pull the site repo first
