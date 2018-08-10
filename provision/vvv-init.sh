@@ -123,6 +123,19 @@ update_plugins() {
   done
 }
 
+# Switch to a specific version of node
+use_node() {
+  if [ -z "$1" ]; then
+    return
+  fi
+
+  export NVM_DIR='/srv/config/nvm'
+  if [ -d $NVM_DIR ]; then
+    echo -e "Setting Node to version $1 using NVM at ${NVM_DIR}"
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm install $1 && nvm use $1
+  fi
+}
+
 ### Scripts ###
 
 # Standard configuration variables
@@ -168,11 +181,7 @@ ensure_directory_exists ${SITE_PATH}
 # Node/NVM Version to use (default of 'node' or current)
 cd "${SITE_PATH}"
 NVM_VERSION=`get_config_value 'node.nvm_version' ''`
-export NVM_DIR='/srv/config/nvm'
-if [ -n $NVM_VERSION ] && [ -d $NVM_DIR ]; then
-  echo -e "Setting Node to version ${NVM_VERSION} using NVM at ${NVM_DIR}"
-  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm install ${NVM_VERSION} && nvm use ${NVM_VERSION}
-fi
+use_node ${NVM_VERSION}
 
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
@@ -240,3 +249,6 @@ else
     sed -i "s#{{TLS_CERT}}##" "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf"
     sed -i "s#{{TLS_KEY}}##" "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf"
 fi
+
+# Hacky reset to latest version of node to avoid issues with npm update overwriting older versions associations
+use_node 'v10'
