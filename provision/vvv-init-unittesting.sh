@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Install and configure the latest source built version of WordPress
 
+# Ensure long file path support is enabled at a system level for Windows
+sudo git config --system core.longpaths true
+
 # Install or update the source dependencies of WordPress before building
 DEVELOP_GIT=`get_config_value 'wp_unittesting_repo' 'https://github.com/WordPress/wordpress-develop'`
 echo "Installing/Updating WordPress from ${DEVELOP_GIT}"
@@ -9,7 +12,7 @@ git_repository_pull "${SITE_PATH}" "${DEVELOP_GIT}"
 # Setup NPM build dependencies
 cd "${SITE_PATH}"
 echo "NPM install, this may take a few minutes..."
-noroot npm install --no-bin-links
+noroot npm install
 echo "NPM install done"
 
 if [[ ! -f "${SITE_PATH}/wp-config.php" ]]; then
