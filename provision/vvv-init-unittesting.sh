@@ -12,7 +12,7 @@ git_repository_pull "${SITE_PATH}" "${DEVELOP_GIT}"
 # Setup NPM build dependencies
 cd "${SITE_PATH}"
 echo "NPM install, this may take a few minutes..."
-noroot npm install
+noroot npm install --verbose --no-bin-links
 echo "NPM install done"
 
 if [[ ! -f "${SITE_PATH}/wp-config.php" ]]; then
