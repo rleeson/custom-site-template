@@ -134,6 +134,7 @@ use_node() {
     echo -e "Setting Node to version $1 using NVM at ${NVM_DIR}"
     [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm install $1 && nvm use $1
   fi
+  echo "Getting version inside use_node() statement"
   npm help --verbose
 }
 
@@ -182,6 +183,7 @@ cd "${SITE_PATH}"
 
 # Hacky reset to latest version of node to avoid issues with npm update overwriting older versions associations
 use_node 'v10'
+echo "Getting version after use_node() statement"
 nvm alias default v10
 npm help --verbose
 
@@ -254,3 +256,4 @@ fi
 
 # Hacky reset to latest version of node to avoid issues with npm update overwriting older versions associations
 use_node 'v10'
+echo "Getting version after use_node() statement"
