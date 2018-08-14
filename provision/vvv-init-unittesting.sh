@@ -11,18 +11,8 @@ git_repository_pull "${SITE_PATH}" "${DEVELOP_GIT}"
 
 # Setup NPM build dependencies
 cd "${SITE_PATH}"
-
-NVM_VERSION=`get_config_value 'node.nvm_version' 'default'`
-export NVM_DIR='/srv/config/nvm'
-if [ -d $NVM_DIR ]; then
-  echo -e "Setting Node to version ${NVM_VERSION} using NVM at ${NVM_DIR}"
-  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && noroot nvm install ${NVM_VERSION} && noroot nvm use ${NVM_VERSION}
-fi
-echo "Getting version after use_node() statement"
-noroot npm help --verbose
-
 echo "NPM install, this may take a few minutes..."
-noroot npm install --verbose --no-bin-links
+sudo npm install --verbose --no-bin-links
 echo "NPM install done"
 
 if [[ ! -f "${SITE_PATH}/wp-config.php" ]]; then

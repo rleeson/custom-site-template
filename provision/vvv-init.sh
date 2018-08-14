@@ -135,7 +135,6 @@ use_node() {
     [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm install $1 && nvm use $1
   fi
   echo "Getting version inside use_node() statement"
-  npm help --verbose
 }
 
 ### Scripts ###
@@ -181,11 +180,10 @@ SITE_PATH=${VVV_PATH_TO_SITE}/public_html
 ensure_directory_exists ${SITE_PATH}
 cd "${SITE_PATH}"
 
-# Hacky reset to latest version of node to avoid issues with npm update overwriting older versions associations
-use_node 'v10'
+# Set v10 as the default
+sudo use_node 'v10'
 echo "Getting version after use_node() statement"
-nvm alias default v10
-npm help --verbose
+sudo nvm alias default v10
 
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
@@ -199,6 +197,9 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
     exit 0
   fi
 fi
+
+NVM_VERSION=`get_config_value 'node.nvm_version' 'default'`
+sudo use_node "${NVM_VERSION}"
 
 # Install/Update the core WordPress installation, optionally via the unit testing compatible source build
 cd "${VVV_PATH_TO_SITE}"
@@ -255,5 +256,4 @@ else
 fi
 
 # Hacky reset to latest version of node to avoid issues with npm update overwriting older versions associations
-use_node 'v10'
-echo "Getting version after use_node() statement"
+sudo use_node 'v10'
