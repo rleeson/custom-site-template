@@ -134,6 +134,7 @@ use_node() {
     echo -e "Setting Node to version $1 using NVM at ${NVM_DIR}"
     [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm install $1 && nvm use $1
   fi
+  npm help --verbose
 }
 
 ### Scripts ###
@@ -177,11 +178,12 @@ noroot touch ${VVV_PATH_TO_SITE}/log/access.log
 # Verify the base site path
 SITE_PATH=${VVV_PATH_TO_SITE}/public_html
 ensure_directory_exists ${SITE_PATH}
-
-# Node/NVM Version to use (default of 'node' or current)
 cd "${SITE_PATH}"
-NVM_VERSION=`get_config_value 'node.nvm_version' ''`
-use_node ${NVM_VERSION}
+
+# Hacky reset to latest version of node to avoid issues with npm update overwriting older versions associations
+use_node 'v10'
+nvm alias default v10
+npm help --verbose
 
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
