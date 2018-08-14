@@ -123,20 +123,6 @@ update_plugins() {
   done
 }
 
-# Switch to a specific version of node
-use_node() {
-  if [ -z "$1" ]; then
-    return
-  fi
-
-  export NVM_DIR='/srv/config/nvm'
-  if [ -d $NVM_DIR ]; then
-    echo -e "Setting Node to version $1 using NVM at ${NVM_DIR}"
-    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" && nvm install $1 && nvm use $1
-  fi
-  echo "Getting version inside use_node() statement"
-}
-
 ### Scripts ###
 
 # Standard configuration variables
@@ -170,6 +156,15 @@ mysql -u root --password=root -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME}"
 mysql -u root --password=root -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO wp@localhost IDENTIFIED BY 'wp';"
 echo -e "\n DB operations done.\n\n"
 
+# Setup NVM execution for use within this shell, set v10 as the default version
+export NVM_DIR='/srv/config/nvm'
+if [ -d $NVM_DIR ]; then
+  echo -e "Setting Node to version $1 using NVM at ${NVM_DIR}"
+  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+fi
+nvm install v10
+nvm alias default v10
+
 # Nginx Logs
 noroot mkdir -p ${VVV_PATH_TO_SITE}/log
 noroot touch ${VVV_PATH_TO_SITE}/log/error.log
@@ -179,11 +174,6 @@ noroot touch ${VVV_PATH_TO_SITE}/log/access.log
 SITE_PATH=${VVV_PATH_TO_SITE}/public_html
 ensure_directory_exists ${SITE_PATH}
 cd "${SITE_PATH}"
-
-# Set v10 as the default
-sudo use_node 'v10'
-echo "Getting version after use_node() statement"
-sudo nvm alias default v10
 
 # WPEngine sites user repositories installed at the site root, pull the site repo first
 if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
@@ -198,8 +188,10 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   fi
 fi
 
+# Ensure 
 NVM_VERSION=`get_config_value 'node.nvm_version' 'default'`
-sudo use_node "${NVM_VERSION}"
+nvm install ${NVM_VERSION}
+nvm use v10
 
 # Install/Update the core WordPress installation, optionally via the unit testing compatible source build
 cd "${VVV_PATH_TO_SITE}"
@@ -254,6 +246,3 @@ else
     sed -i "s#{{TLS_CERT}}##" "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf"
     sed -i "s#{{TLS_KEY}}##" "${VVV_PATH_TO_SITE}/provision/vvv-nginx.conf"
 fi
-
-# Hacky reset to latest version of node to avoid issues with npm update overwriting older versions associations
-sudo use_node 'v10'

@@ -11,8 +11,8 @@ git_repository_pull "${SITE_PATH}" "${DEVELOP_GIT}"
 
 # Setup NPM build dependencies
 cd "${SITE_PATH}"
-echo "NPM install, this may take a few minutes..."
-sudo npm install --verbose --no-bin-links
+echo -e "NPM install with version ${NVM_VERSION}, this may take a few minutes..."
+nvm exec ${NVM_VERSION} npm ci --verbose
 echo "NPM install done"
 
 if [[ ! -f "${SITE_PATH}/wp-config.php" ]]; then
