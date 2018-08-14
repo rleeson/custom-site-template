@@ -11,11 +11,17 @@ git_repository_pull "${SITE_PATH}" "${DEVELOP_GIT}"
 
 # Setup NPM build dependencies
 cd "${SITE_PATH}"
-echo "Set npm cache directory to /home/vagrant/.npm"
-npm config set cache /home/vagrant/.npm
+NPM_CACHE_DIRECTORY=${NVM_VERSION//[\\\/\.\<\>\:\"\'\|\?\!\*-]/}
+echo -e "Set npm cache directory to /home/vagrant/${NPM_CACHE_DIRECTORY}/.npm"
+noroot mkdir -p /home/vagrant/${NPM_CACHE_DIRECTORY}/.npm
+npm config set cache /home/vagrant/${NPM_CACHE_DIRECTORY}/.npm
 echo -e "NPM install with version ${NVM_VERSION}, this may take a few minutes..."
 nvm exec ${NVM_VERSION} npm install --verbose
-echo "NPM install done"
+echo "NPM install done."
+
+# Deal with cross-environment/version issues
+echo "Rebuild node-sass as it is sensitive to build environment/version..."
+nvm exec ${NVM_VERSION} npm rebuild node-sass --force
 
 if [[ ! -f "${SITE_PATH}/wp-config.php" ]]; then
   cd "${SITE_PATH}"

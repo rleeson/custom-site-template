@@ -188,7 +188,7 @@ if [ "wpengine" == "${WP_HOST_TYPE}" ]; then
   fi
 fi
 
-# Ensure 
+# Get the version of Node to use for npm install
 NVM_VERSION=`get_config_value 'node.nvm_version' 'default'`
 nvm install ${NVM_VERSION}
 nvm use v10
