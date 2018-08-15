@@ -11,10 +11,11 @@ git_repository_pull "${SITE_PATH}" "${DEVELOP_GIT}"
 
 # Setup NPM build dependencies
 cd "${SITE_PATH}"
-NPM_CACHE_DIRECTORY=${NVM_VERSION//[\\\/\.\<\>\:\"\'\|\?\!\*-]/}
-echo -e "Set npm cache directory to /home/vagrant/${NPM_CACHE_DIRECTORY}/.npm"
-noroot mkdir -p /home/vagrant/${NPM_CACHE_DIRECTORY}/.npm
-npm config set cache /home/vagrant/${NPM_CACHE_DIRECTORY}/.npm
+NPM_CACHE_DIRECTORY=/home/vagrant/${NVM_VERSION//[\\\/\.\<\>\:\"\'\|\?\!\*-]/}/.npm
+echo -e "Set npm cache directory to ${NPM_CACHE_DIRECTORY}"
+noroot mkdir -p --mode=u+rwx,g+rxs,g-w,o-w ${NPM_CACHE_DIRECTORY}
+chown vagrant.vagrant ${NPM_CACHE_DIRECTORY}
+npm config set cache ${NPM_CACHE_DIRECTORY}
 echo -e "NPM install with version ${NVM_VERSION}, this may take a few minutes..."
 nvm exec ${NVM_VERSION} npm install --verbose
 echo "NPM install done."
