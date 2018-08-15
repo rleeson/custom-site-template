@@ -14,15 +14,15 @@ cd "${SITE_PATH}"
 NPM_CACHE_DIRECTORY=/home/vagrant/${NVM_VERSION//[\\\/\.\<\>\:\"\'\|\?\!\*-]/}/.npm
 echo -e "Set npm cache directory to ${NPM_CACHE_DIRECTORY}"
 noroot mkdir -p --mode=u+rwx,g+rxs,g-w,o-w ${NPM_CACHE_DIRECTORY}
-chown vagrant.vagrant ${NPM_CACHE_DIRECTORY}
-npm config set cache ${NPM_CACHE_DIRECTORY}
+sudo chown -R vagrant:vagrant ${NPM_CACHE_DIRECTORY}
+noroot npm config set cache ${NPM_CACHE_DIRECTORY}
 echo -e "NPM install with version ${NVM_VERSION}, this may take a few minutes..."
-nvm exec ${NVM_VERSION} npm install --verbose
+noroot nvm exec ${NVM_VERSION} npm install --verbose
 echo "NPM install done."
 
 # Deal with cross-environment/version issues
 echo "Rebuild node-sass as it is sensitive to build environment/version..."
-nvm exec ${NVM_VERSION} npm rebuild node-sass --force
+noroot nvm exec ${NVM_VERSION} npm rebuild node-sass --force
 
 if [[ ! -f "${SITE_PATH}/wp-config.php" ]]; then
   cd "${SITE_PATH}"
