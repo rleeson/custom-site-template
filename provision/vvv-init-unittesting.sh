@@ -12,6 +12,7 @@ git_repository_pull "${SITE_PATH}" "${DEVELOP_GIT}"
 # Setup NPM build dependencies
 cd "${SITE_PATH}"
 NPM_CACHE_DIRECTORY=/home/vagrant/${NVM_VERSION//[\\\/\.\<\>\:\"\'\|\?\!\*-]/}/.npm
+noroot source /home/vagrant/.bash_profile
 echo -e "Set npm cache directory to ${NPM_CACHE_DIRECTORY}"
 noroot mkdir -p --mode=u+rwx,g+rxs,g-w,o-w ${NPM_CACHE_DIRECTORY}
 sudo chown -R vagrant:vagrant ${NPM_CACHE_DIRECTORY}
