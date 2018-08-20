@@ -11,19 +11,19 @@ git_repository_pull "${SITE_PATH}" "${DEVELOP_GIT}"
 
 # Setup NPM build dependencies
 cd "${SITE_PATH}"
-NPM_CACHE_DIRECTORY=/home/vagrant/${NVM_VERSION//[\\\/\.\<\>\:\"\'\|\?\!\*-]/}/.npm
-noroot source /home/vagrant/.bash_profile
+NPM_CACHE_DIRECTORY=/home/vagrant/npm/${NVM_VERSION//[\\\/\.\<\>\:\"\'\|\?\!\*-]/}/.npm
+source /home/vagrant/.bash_profile
 echo -e "Set npm cache directory to ${NPM_CACHE_DIRECTORY}"
-noroot mkdir -p --mode=u+rwx,g+rxs,g-w,o-w ${NPM_CACHE_DIRECTORY}
+mkdir -p --mode=u+rwx,g+rxs,g-w,o-w ${NPM_CACHE_DIRECTORY}
 sudo chown -R vagrant:vagrant ${NPM_CACHE_DIRECTORY}
-noroot npm config set cache ${NPM_CACHE_DIRECTORY}
+npm config set cache ${NPM_CACHE_DIRECTORY}
 echo -e "NPM install with version ${NVM_VERSION}, this may take a few minutes..."
-noroot nvm exec ${NVM_VERSION} npm install --verbose
+nvm exec ${NVM_VERSION} npm ci --verbose
 echo "NPM install done."
 
 # Deal with cross-environment/version issues
 echo "Rebuild node-sass as it is sensitive to build environment/version..."
-noroot nvm exec ${NVM_VERSION} npm rebuild node-sass --force
+nvm exec ${NVM_VERSION} npm rebuild node-sass --force
 
 if [[ ! -f "${SITE_PATH}/wp-config.php" ]]; then
   cd "${SITE_PATH}"
@@ -54,7 +54,7 @@ fi
 
 # Grunt build of unit testing compatible site
 echo "Grunt build of the source, this may take a few minutes..."
-noroot grunt
+grunt
 echo "Grunt built"
 
 ensure_directory_exists "${SITE_PATH}/src/wp-content/mu-plugins" 
