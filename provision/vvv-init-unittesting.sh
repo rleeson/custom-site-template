@@ -11,20 +11,20 @@ git_repository_pull "${SITE_PATH}" "${DEVELOP_GIT}"
 
 # Setup NPM build dependencies
 cd "${SITE_PATH}"
-NPM_CACHE_DIRECTORY=/home/vagrant/npm/${NVM_VERSION//[\\\/\.\<\>\:\"\'\|\?\!\*-]/}/.npm
-source /home/vagrant/.bash_profile
-echo -e "Set npm cache directory to ${NPM_CACHE_DIRECTORY}"
-mkdir -p --mode=u+rwx,g+rxs,g-w,o-w ${NPM_CACHE_DIRECTORY}
-sudo chown -R vagrant:vagrant ${NPM_CACHE_DIRECTORY}
-nvm exec ${NVM_VERSION} npm config set cache ${NPM_CACHE_DIRECTORY}
-nvm exec ${NVM_VERSION} npm cache clean --force
-echo -e "NPM install with version ${NVM_VERSION}, this may take a few minutes..."
-nvm exec ${NVM_VERSION} npm ci --verbose
-echo "NPM install done."
+#NPM_CACHE_DIRECTORY=/home/vagrant/npm/${NVM_VERSION//[\\\/\.\<\>\:\"\'\|\?\!\*-]/}/.npm
+#source /home/vagrant/.bash_profile
+#echo -e "Set npm cache directory to ${NPM_CACHE_DIRECTORY}"
+#mkdir -p --mode=u+rwx,g+rxs,g-w,o-w ${NPM_CACHE_DIRECTORY}
+#sudo chown -R vagrant:vagrant ${NPM_CACHE_DIRECTORY}
+#nvm exec ${NVM_VERSION} npm config set cache ${NPM_CACHE_DIRECTORY}
+#nvm exec ${NVM_VERSION} npm cache clean --force
+#echo -e "NPM install with version ${NVM_VERSION}, this may take a few minutes..."
+#nvm exec ${NVM_VERSION} npm ci --verbose
+#echo "NPM install done."
 
 # Deal with cross-environment/version issues
-echo "Rebuild node-sass as it is sensitive to build environment/version..."
-nvm exec ${NVM_VERSION} npm rebuild node-sass --force
+#echo "Rebuild node-sass as it is sensitive to build environment/version..."
+#nvm exec ${NVM_VERSION} npm rebuild node-sass --force
 
 if [[ ! -f "${SITE_PATH}/wp-config.php" ]]; then
   cd "${SITE_PATH}"
@@ -54,9 +54,9 @@ if ! $(noroot wp core is-installed --path="${SITE_PATH}/src"); then
 fi
 
 # Grunt build of unit testing compatible site
-echo "Grunt build of the source, this may take a few minutes..."
-grunt
-echo "Grunt built"
+#echo "Grunt build of the source, this may take a few minutes..."
+#grunt
+#echo "Grunt built"
 
 ensure_directory_exists "${SITE_PATH}/src/wp-content/mu-plugins" 
 ensure_directory_exists "${SITE_PATH}/build/wp-content/mu-plugins"
